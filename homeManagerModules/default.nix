@@ -2,6 +2,10 @@
 ssh-keyname = "id_ed25519";
 in
 {
+  
+  imports = [
+    ./niri.nix
+  ];
   xdg.userDirs.enable = true;
   xdg.userDirs.createDirectories = true;
 
