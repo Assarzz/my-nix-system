@@ -5,6 +5,7 @@ in
   
   imports = [
     ./niri.nix
+    ./theme.nix
   ];
   xdg.userDirs.enable = true;
   xdg.userDirs.createDirectories = true;
@@ -39,5 +40,18 @@ in
       enable = true;
       #addKeysToAgent
     };
+    chromium = {
+      enable = true;
+      commandLineArgs = [
+        "--ozone-platform=wayland"
+      ];
+    };
+    vscode = {
+      enable = true;
+      extensions = with pkgs.vscode-extensions; [
+        rust-lang.rust-analyzer
+      ];
+    };
+
   };
 }
