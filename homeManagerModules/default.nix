@@ -1,4 +1,4 @@
-{pkgs, lib,  ...}:let 
+{pkgs, lib, inputs,  ...}:let 
 ssh-keyname = "id_ed25519";
 in
 {
@@ -6,6 +6,7 @@ in
   imports = [
     ./niri.nix
     ./theme.nix
+    #inputs.ags.homeManagerModules.default
   ];
   xdg.userDirs.enable = true;
   xdg.userDirs.createDirectories = true;
@@ -52,6 +53,24 @@ in
         rust-lang.rust-analyzer
       ];
     };
+    neovim.enable = true;
+    alacritty.enable = true;
+    fuzzel.enable = true;
+    # ags = {
+    #   enable = true;
 
+    #   # symlink to ~/.config/ags
+    #   configDir = ../ags;
+
+    #   # additional packages to add to gjs's runtime
+    #   extraPackages = with pkgs; [
+    #     inputs.ags.packages.${pkgs.system}.battery
+    #     fzf
+    #   ];
+    # };
+    # eww = {
+    #   enable  =true;
+    #   configDir = ../eww-config-dir;
+    # };
   };
 }

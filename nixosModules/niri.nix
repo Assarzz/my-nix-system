@@ -1,7 +1,7 @@
-{niri, pkgs, ...}:
+{inputs, pkgs, ...}:
 {
   imports = [
-    niri.nixosModules.niri
+    inputs.niri.nixosModules.niri
   ];
   # nix.settings = {
   #   substituters = ["https://cache.nixos.org" "https://niri.cachix.org"];
@@ -12,7 +12,7 @@
   # };
 
   programs.niri.enable = true;
-  nixpkgs.overlays = [ niri.overlays.niri ];
+  nixpkgs.overlays = [ inputs.niri.overlays.niri ];
   programs.niri.package = pkgs.niri-unstable;
 
 }
