@@ -28,9 +28,8 @@
   in {
     nixosConfigurations = {
       vm1 = mkSystem "vm1";
-      # make hostname vm1 etc
+      pioneer256 = mkSystem "pioneer256";
     };
-    #homeManagerModules.default = ./homeManagerModules; 
   };
   nixConfig = {
   extra-substituters = [
