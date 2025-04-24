@@ -51,9 +51,9 @@
             "Mod+Shift+R".action = switch-preset-window-height;
 
 
-            "Print".action = screenshot = {write-to-disk = true;};
-            "Ctrl+Print".action = screenshot-screen = {write-to-disk = true;};
-            "Alt+Print".action = screenshot-window = {write-to-disk = true;};
+            "Print".action = screenshot; # {write-to-disk = true;};
+            #"Ctrl+Print".action.screenshot-screen = {write-to-disk = true;};
+            #"Alt+Print".action.screenshot-window = {write-to-disk = true;};
 
             # Powers off the monitors. To turn them back on, do any input like
             # moving the mouse or pressing any other key.
