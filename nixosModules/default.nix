@@ -34,6 +34,7 @@
     evince
     calibre
     wget
+    nautilus
   ];
 
   services = {
