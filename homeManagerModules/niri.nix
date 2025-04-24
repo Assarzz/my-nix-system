@@ -5,7 +5,7 @@
 
         layout = {
             default-column-width = { proportion = 1.0; };
-            gaps = 0
+            gaps = 0;
             preset-column-widths = [
                 { proportion = 1. / 3.; }
                 { proportion = 1. / 2.; }
