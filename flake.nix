@@ -8,8 +8,17 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
   outputs = { self, nixpkgs, home-manager, niri, ... }@inputs: let 
+
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
+    updateScript = pkgs.writeShellScriptBin "update-git" ''
+      #!${pkgs.bash}/bin/bash
+      git add .
+      git commit -m "update"
+      git push
+    '';
     mkSystem = host: nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
+      inherit system;
       specialArgs = {inherit inputs;};
       modules = [ 
         ./hosts/${host}/configuration.nix 
@@ -30,6 +39,13 @@
       vm1 = mkSystem "vm1";
       pioneer256 = mkSystem "pioneer256";
       igniter = mkSystem "igniter";
+    };
+      # `nix run` will invoke this script
+    apps.${system}.default = {
+      type    = "app";
+      program = "${updateScript}";
+      # make sure git is in the PATH at runtime
+      deps    = [ pkgs.git ];
     };
   };
   nixConfig = {
