@@ -35,6 +35,7 @@
     calibre
     wget
     nautilus
+    (import ../update-git-nix)
   ];
 
   services = {
