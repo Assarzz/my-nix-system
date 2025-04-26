@@ -1,29 +1,28 @@
 {
-  description = "Simple flake to auto-commit & push";
+  description = "Flake to auto-commit & push via writeShellScriptBin";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs";
   };
 
   outputs = { self, nixpkgs, ... }:
-    let
-      system = "x86_64-linux";  # or your platform, e.g. "aarch64-linux"
-      pkgs   = nixpkgs.legacyPackages.${system};
-    in {
-      # `nix run .` will invoke this
-      apps.${system}.default = {
-        type = "app";
-        program = "${pkgs.bash}/bin/bash";
-        args = [
-          "-c"
-          ''
-            git add . &&
-            git commit -m "update" &&
-            git push
-          ''
-        ];
-        # ensure git is in the PATH at runtime
-        deps = [ pkgs.git ];
-      };
+  let
+    system = "x86_64-linux";    # ← adjust to your platform
+    pkgs   = nixpkgs.legacyPackages.${system};
+
+    updateScript = pkgs.writeShellScriptBin "update-git" ''
+      #!${pkgs.bash}/bin/bash
+      git add .
+      git commit -m "update"
+      git push
+    '';
+  in {
+    # `nix run` will invoke this script
+    apps.${system}.default = {
+      type    = "app";
+      program = "${updateScript}";
+      # make sure git is in the PATH at runtime
+      deps    = [ pkgs.git ];
     };
+  };
 }
