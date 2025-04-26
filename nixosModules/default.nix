@@ -6,6 +6,22 @@
     ./niri.nix
     ./steam.nix
   ];
+
+    nixpkgs.overlays = [
+    nix-vscode-extensions.overlays.default
+  ];
+    extensions = with pkgs.vscode-marketplace; [
+    # Search for vscode-extensions on https://search.nixos.org/packages
+    #dracula-theme.theme-dracula
+    jnoortheen.nix-ide
+    #gruntfuggly.todo-tree
+    #llvm-vs-code-extensions.vscode-clangd
+    #ms-vscode-remote.remote-ssh
+    #ms-vscode.makefile-tools
+    #ms-vsliveshare.vsliveshare
+    #ms-python.python
+    #mechatroner.rainbow-csv
+  ];
   nixpkgs.config.allowUnfree = true;
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
