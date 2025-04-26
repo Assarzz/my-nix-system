@@ -2,7 +2,7 @@
   description = "Simple flake to auto-commit & push";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs = { self, nixpkgs, ... }:
@@ -13,7 +13,7 @@
       # `nix run .` will invoke this
       apps.${system}.default = {
         type = "app";
-        program = "${pkgs.stdenv}/bin/sh";
+        program = "${pkgs.bash}/bin/bash";
         args = [
           "-c"
           ''

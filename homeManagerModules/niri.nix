@@ -51,7 +51,7 @@
             "Mod+Shift+R".action = switch-preset-window-height;
 
 
-            "Print".action = screenshot; # {write-to-disk = true;};
+            "Mod+Shift+S".action = screenshot; # {write-to-disk = true;};
             #"Ctrl+Print".action.screenshot-screen = {write-to-disk = true;};
             #"Alt+Print".action.screenshot-window = {write-to-disk = true;};
 
