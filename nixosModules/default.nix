@@ -4,6 +4,7 @@
     ./users.nix
     #./graphics.nix
     ./niri.nix
+    ./steam.nix
   ];
   nixpkgs.config.allowUnfree = true;
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
