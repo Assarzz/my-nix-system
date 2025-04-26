@@ -37,6 +37,7 @@
     wget
     nautilus
     (import ../update-git.nix {inherit pkgs;})
+    xwayland-satellite
   ];
 
   services = {
