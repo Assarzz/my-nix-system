@@ -35,7 +35,7 @@
     calibre
     wget
     nautilus
-    (import ../update-git.nix pkgs)
+    (import ../update-git.nix {inherit pkgs;})
   ];
 
   services = {
