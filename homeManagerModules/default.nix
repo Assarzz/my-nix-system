@@ -51,6 +51,15 @@ in
       enable = true;
       extensions = with pkgs.vscode-extensions; [
         rust-lang.rust-analyzer
+        #dracula-theme.theme-dracula
+        jnoortheen.nix-ide
+        #gruntfuggly.todo-tree
+        #llvm-vs-code-extensions.vscode-clangd
+        #ms-vscode-remote.remote-ssh
+        #ms-vscode.makefile-tools
+        #ms-vsliveshare.vsliveshare
+        #ms-python.python
+        #mechatroner.rainbow-csv
       ];
     };
     neovim.enable = true;
