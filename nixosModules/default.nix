@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 {
   imports = [
     ./users.nix
@@ -8,7 +8,7 @@
   ];
 
     nixpkgs.overlays = [
-    nix-vscode-extensions.overlays.default
+    inputs.nix-vscode-extensions.overlays.default
   ];
     extensions = with pkgs.vscode-marketplace; [
     # Search for vscode-extensions on https://search.nixos.org/packages
