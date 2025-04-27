@@ -43,6 +43,7 @@
     nautilus
     (import ../update-git.nix {inherit pkgs;})
     xwayland-satellite
+    keepassxc
   ];
 
   services = {
