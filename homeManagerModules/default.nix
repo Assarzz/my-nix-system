@@ -47,6 +47,7 @@ in
         "--ozone-platform=wayland"
       ];
     };
+    firefox.enable = true;
     vscode = {
       enable = true;
       extensions = with pkgs.vscode-extensions; [

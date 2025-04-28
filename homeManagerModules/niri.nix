@@ -21,6 +21,8 @@
             };
 
         };
+
+
         binds = with config.lib.niri.actions; {
             "Mod+T".action = spawn "alacritty";
             "Mod+D".action = spawn "fuzzel";
