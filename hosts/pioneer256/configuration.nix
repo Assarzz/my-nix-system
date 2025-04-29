@@ -19,8 +19,6 @@ in {
     };
     services.samba = {
       enable = true;
-      securityType = "user";
-      openFirewall = true;
       settings = {
       global = {
         "invalid users" = [
@@ -37,13 +35,5 @@ in {
         "read only" = "yes";
       };
     };
-
-    services.samba-wsdd = {
-      enable = true;
-      openFirewall = true;
-    };
-
-    networking.firewall.enable = true;
-    networking.firewall.allowPing = true;
   };
 }
