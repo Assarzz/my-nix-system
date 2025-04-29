@@ -33,7 +33,7 @@ in {
           comment = "Public samba share.";
           "guest ok" = "yes";
           path = "${portssd}";
-          "read only" = "yes";
+          "read only" = "no";
         };
       };
     };
