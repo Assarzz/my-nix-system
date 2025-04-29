@@ -5,6 +5,7 @@
     #./graphics.nix
     ./niri.nix
     ./steam.nix
+    ./sound.nix
   ];
 
   #   nixpkgs.overlays = [
@@ -44,6 +45,7 @@
     (import ../update-git.nix {inherit pkgs;})
     xwayland-satellite
     keepassxc
+    pulseaudio
   ];
 
   services = {
@@ -57,7 +59,7 @@
   fonts = {
     enableDefaultPackages = true; # optional: includes common fonts
     packages = with pkgs; [
-      dejavu_fonts
+      ubuntu_font_family
     ];
   };
 }
