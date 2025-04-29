@@ -24,8 +24,8 @@ in {
     settings = {
       global = {
         security       = "user";
-        map to guest   = "Bad User";
-        guest account  = "nobody";
+        "map to guest"   = "Bad User";
+        "guest account"  = "nobody";
         # … any hosts allow/deny you already have …
       };
 
