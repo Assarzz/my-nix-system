@@ -1,6 +1,6 @@
 {lib, config, ...}:
 let cfg = config.steam; in {
-    options.steam = mkEnableOption "enable steam";
+    options.steam.enable = lib.mkEnableOption "enable steam";
     config = lib.mkIf cfg.enable {
         programs.steam = {
             enable = true;

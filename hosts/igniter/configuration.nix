@@ -2,7 +2,7 @@
 
 {
 
-  steam = true;
+  steam.enable = true;
   
   imports =
     [ # Include the results of the hardware scan.

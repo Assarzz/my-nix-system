@@ -46,6 +46,7 @@
     xwayland-satellite
     keepassxc
     pulseaudio
+    font-manager
   ];
 
   services = {
@@ -56,10 +57,15 @@
   };
 
   # fonts
-  fonts = {
-    enableDefaultPackages = true; # optional: includes common fonts
-    packages = with pkgs; [
-      ubuntu_font_family
-    ];
-  };
+fonts.packages = with pkgs; [
+  noto-fonts
+  noto-fonts-cjk-sans
+  noto-fonts-emoji
+  liberation_ttf
+  fira-code
+  fira-code-symbols
+  mplus-outline-fonts.githubRelease
+  dina-font
+  proggyfonts
+];
 }
