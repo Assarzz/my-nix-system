@@ -32,13 +32,13 @@ in {
       public = {
         browseable     = "yes";
         comment        = "Public samba share.";
-        guest ok       = "yes";
-        read only      = "no";
+        "guest ok"       = "yes";
+        "read only"      = "no";
         writable       = "yes";
         path           = "${portssd}";
-        force user     = "nobody";
-        create mask    = "0666";
-        directory mask = "0777";
+        "force user"     = "nobody";
+        "create mask"    = "0666";
+        "directory mask" = "0777";
       };
     };
   };
