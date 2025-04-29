@@ -66,6 +66,10 @@ in
     neovim.enable = true;
     alacritty.enable = true;
     fuzzel.enable = true;
+    yazi = {
+      enable = true;
+      
+    };
     # ags = {
     #   enable = true;
 
