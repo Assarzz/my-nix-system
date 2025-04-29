@@ -17,24 +17,29 @@ in {
         "nofail" # Prevent system from failing if this drive doesn't mount
       ];
     };
-    services.samba = {
-      enable = true;
-      openFirewall = true;
-      settings = {
-        global = {
-          "invalid users" = [
-            "root"
-          ];
-          #"passwd program" = "/run/wrappers/bin/passwd %u";
-          security = "user";
-        };
-        public = {
-          browseable = "yes";
-          comment = "Public samba share.";
-          "guest ok" = "yes";
-          path = "${portssd}";
-          "read only" = "no";
-        };
+  services.samba = {
+    enable       = true;
+    openFirewall = true;
+
+    settings = {
+      global = {
+        security       = "user";
+        map to guest   = "Bad User";
+        guest account  = "nobody";
+        # … any hosts allow/deny you already have …
+      };
+
+      public = {
+        browseable     = "yes";
+        comment        = "Public samba share.";
+        guest ok       = "yes";
+        read only      = "no";
+        writable       = "yes";
+        path           = "${portssd}";
+        force user     = "nobody";
+        create mask    = "0666";
+        directory mask = "0777";
       };
     };
+  };
 }
