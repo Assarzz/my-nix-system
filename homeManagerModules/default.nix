@@ -68,7 +68,8 @@ in
     fuzzel.enable = true;
     yazi = {
       enable = true;
-      
+      enableBashIntegration = true;
+
     };
     # ags = {
     #   enable = true;
