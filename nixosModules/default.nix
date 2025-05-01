@@ -34,6 +34,14 @@
   # networking
   networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
 
+  # extra udev rule to flash zsa keyboard with oryx
+  services.udev.extraRules = ''
+    # Rules for Oryx web flashing and live training
+    KERNEL=="hidraw*", ATTRS{idVendor}=="16c0", MODE="0664", GROUP="plugdev"
+    KERNEL=="hidraw*", ATTRS{idVendor}=="3297", MODE="0664", GROUP="plugdev"
+  '';
+
+
   # wayland support for vscode in particular
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
   environment.systemPackages = with pkgs; [
@@ -47,6 +55,7 @@
     keepassxc
     pulseaudio
     font-manager
+    dua
   ];
 
   services = {
