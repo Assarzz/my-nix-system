@@ -1,5 +1,6 @@
 { config, lib, pkgs, ... }:
 let portssd = "/mnt/portssd";
+ public = "${portssd}/public";
 in {
   imports =
     [ # Include the results of the hardware scan.
@@ -35,7 +36,7 @@ in {
         "guest ok"       = "yes";
         "read only"      = "no";
         writable       = "yes";
-        path           = "${portssd}";
+        path           = "${public}";
         "force user"     = "nobody";
         "create mask"    = "0666";
         "directory mask" = "0777";
@@ -44,8 +45,8 @@ in {
   };
   system.activationScripts.ensurePublicOwnership = {
     text = ''
-      chown -R nobody:nobody /mnt/Shares/Public
-      chmod -R 0777        /mnt/Shares/Public
+      chown -R nobody:nobody ${public}
+      chmod -R 0777        ${public}
     '';
   };
 }
