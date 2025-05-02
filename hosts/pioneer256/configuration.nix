@@ -40,6 +40,9 @@ in {
         "force user"     = "nobody";
         "create mask"    = "0666";
         "directory mask" = "0777";
+        # for ios
+        "vfs objects" = "catia fruit streams_xattr";
+
       };
     };
   };
