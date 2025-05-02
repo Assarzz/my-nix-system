@@ -43,10 +43,8 @@ in {
       };
     };
   };
-  system.activationScripts.ensurePublicOwnership = {
-    text = ''
-      chown -R nobody:nobody ${public}
-      chmod -R 0777        ${public}
-    '';
-  };
+  systemd.tmpfiles.rules = [
+    # Format: "d <path> <mode> <owner> <group> <age> <argument>"
+    "d ${public} 0777 nobody nobody - -"
+  ];
 }
