@@ -42,4 +42,10 @@ in {
       };
     };
   };
+  system.activationScripts.ensurePublicOwnership = {
+    text = ''
+      chown -R nobody:nobody /mnt/Shares/Public
+      chmod -R 0777        /mnt/Shares/Public
+    '';
+  };
 }
