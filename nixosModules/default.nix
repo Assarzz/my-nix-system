@@ -59,6 +59,7 @@
     pulseaudio
     font-manager
     dua
+    powertop
   ];
 
   services = {
