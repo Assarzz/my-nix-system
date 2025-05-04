@@ -66,6 +66,8 @@
       enable = true;
       settings.PermitRootLogin = "yes";
     };
+    tlp.enable = true;
+
   };
 
   # fonts
