@@ -57,9 +57,8 @@
     xwayland-satellite
     keepassxc
     pulseaudio
-    font-manager
     dua
-    powertop
+    tlp
   ];
 
   services = {
