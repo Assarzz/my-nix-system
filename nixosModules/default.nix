@@ -1,5 +1,4 @@
-{ config, lib, pkgs, inputs, ... }:
-{
+{ config, lib, pkgs, inputs, ... }: {
   imports = [
     ./users.nix
     #./graphics.nix
@@ -32,7 +31,8 @@
   time.timeZone = "Europe/Stockholm";
 
   # networking
-  networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
+  networking.networkmanager.enable =
+    true; # Easiest to use and most distros use this by default.
 
   # extra udev rule to flash zsa keyboard with oryx
   services.udev.extraRules = ''
@@ -44,7 +44,6 @@
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="3297", MODE:="0666", SYMLINK+="ignition_dfu"
   '';
 
-
   # wayland support for vscode in particular
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
   environment.systemPackages = with pkgs; [
@@ -53,13 +52,15 @@
     calibre
     wget
     nautilus
-    (import ../update-git.nix {inherit pkgs;})
+    (import ../update-git.nix { inherit pkgs; })
     xwayland-satellite
     keepassxc
-    pulseaudio
+    pulseaudio # for pactl utility
     dua
     tlp
     glances
+    nixpkgs-fmt
+
   ];
 
   services = {
@@ -72,15 +73,15 @@
   };
 
   # fonts
-fonts.packages = with pkgs; [
-  noto-fonts
-  noto-fonts-cjk-sans
-  noto-fonts-emoji
-  liberation_ttf
-  fira-code
-  fira-code-symbols
-  mplus-outline-fonts.githubRelease
-  dina-font
-  proggyfonts
-];
+  fonts.packages = with pkgs; [
+    noto-fonts
+    noto-fonts-cjk-sans
+    noto-fonts-emoji
+    liberation_ttf
+    fira-code
+    fira-code-symbols
+    mplus-outline-fonts.githubRelease
+    dina-font
+    proggyfonts
+  ];
 }
