@@ -5,6 +5,7 @@
     ./niri.nix
     ./steam.nix
     ./sound.nix
+    ./nas.nix
   ];
 
   #   nixpkgs.overlays = [
@@ -59,8 +60,7 @@
     dua
     tlp
     glances
-    nixpkgs-fmt
-
+    nixfmt-rfc-style
   ];
 
   services = {
