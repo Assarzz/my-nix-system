@@ -60,6 +60,7 @@
     dua
     tlp
     glances
+    powertop
   ];
 
   services = {
