@@ -59,6 +59,7 @@
     pulseaudio
     dua
     tlp
+    glances
   ];
 
   services = {

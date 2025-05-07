@@ -65,3 +65,8 @@ in {
 # 52 watt removed dedicated graphics card, both power and from motherboard
 # 51 watt maybe. I went through ALL the bios settings and turned off AUDIO CARD and EPET and some other stuff.
 # 47 watt lets  go. Changed "Package C State Limit" from "Auto" to "C7s"
+# 49? dropped CPU Base Clock by 1.5 MHz added TLP
+# 49.7 dropped vcore to total -50 mV
+# 49.3 maybe. Very minor but a little maybe. dropped vcore to total  -150 mV
+# 49.2 maybe. honestly impossible to tell. Ring voltage to total -75mV
+# same. VCCIN 1.7V
