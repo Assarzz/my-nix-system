@@ -34,6 +34,7 @@
       vm1 = mkSystem "vm1";
       pioneer256 = mkSystem "pioneer256";
       igniter = mkSystem "igniter";
+      strategist = mkSystem "strategist";
     };
   };
   nixConfig = {

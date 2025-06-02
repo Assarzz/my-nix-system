@@ -47,6 +47,7 @@
 
   # wayland support for vscode in particular
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
+  
   environment.systemPackages = with pkgs; [
     anki-bin
     evince
