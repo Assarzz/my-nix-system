@@ -6,7 +6,7 @@ in
   imports = [
     ./niri.nix
     ./theme.nix
-    #inputs.ags.homeManagerModules.default
+    inputs.ags.homeManagerModules.default
   ];
   xdg.userDirs.enable = true;
   xdg.userDirs.createDirectories = true;
@@ -71,21 +71,18 @@ in
       enableBashIntegration = true;
 
     };
-    # ags = {
-    #   enable = true;
+    ags = {
+      enable = true;
 
-    #   # symlink to ~/.config/ags
-    #   configDir = ../ags;
+      # null or path, leave as null if you don't want hm to manage the config
+      configDir = ../ags;
 
-    #   # additional packages to add to gjs's runtime
-    #   extraPackages = with pkgs; [
-    #     inputs.ags.packages.${pkgs.system}.battery
-    #     fzf
-    #   ];
-    # };
-    # eww = {
-    #   enable  =true;
-    #   configDir = ../eww-config-dir;
-    # };
+      # additional packages to add to gjs's runtime
+      extraPackages = with pkgs; [
+        gtksourceview
+        webkitgtk
+        accountsservice
+      ];
+    };
   };
 }
