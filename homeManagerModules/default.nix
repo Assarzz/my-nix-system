@@ -6,7 +6,6 @@ in
   imports = [
     ./niri.nix
     ./theme.nix
-    inputs.ags.homeManagerModules.default
   ];
   xdg.userDirs.enable = true;
   xdg.userDirs.createDirectories = true;

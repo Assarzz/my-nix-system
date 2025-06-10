@@ -24,7 +24,11 @@
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
-            users.assar.imports = [./hosts/${host}/home.nix ./homeManagerModules];
+            users.assar.imports = [
+              ./hosts/${host}/home.nix
+              ./homeManagerModules
+              inputs.ags.homeManagerModules.default # you need to do this here and not inside the default homemanager module so it does not become circular, because inside this function inputs in guranteed to be completed
+              ];
           };
         }
       ];
