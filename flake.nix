@@ -24,6 +24,7 @@
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
+            extraSpecialArgs = { inherit inputs; }; # <-- Correct way to pass inputs to Home Manager user modules
             users.assar.imports = [
               ./hosts/${host}/home.nix
               ./homeManagerModules
@@ -34,6 +35,7 @@
       ];
     }; 
   in {
+    
     nixosConfigurations = {
       vm1 = mkSystem "vm1";
       pioneer256 = mkSystem "pioneer256";
