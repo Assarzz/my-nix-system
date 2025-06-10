@@ -1,21 +1,27 @@
-{ config, lib, pkgs, inputs, ... }: {
+{
+  config,
+  lib,
+  pkgs,
+  inputs,
+  ...
+}:
+{
   imports = [
     ./users.nix
-    #./graphics.nix
     ./niri.nix
     ./steam.nix
     ./sound.nix
     ./nas.nix
+    ./jp-input.nix
   ];
 
-  #   nixpkgs.overlays = [
-  #   inputs.nix-vscode-extensions.overlays.default
-  # ];
-
   nixpkgs.config.allowUnfree = true;
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
-  # boot stuff
+  # Boot settings
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -23,19 +29,17 @@
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
   console = {
-    #font = "Lat2-Terminus16";
     keyMap = "sv-latin1";
-    #useXkbConfig = true; # use xkb.options in tty.
   };
 
-  # Set your time zone.
   time.timeZone = "Europe/Stockholm";
 
-  # networking
-  networking.networkmanager.enable =
-    true; # Easiest to use and most distros use this by default.
+  # jp keyboard
+  jpInput = true;
 
-  # extra udev rule to flash zsa keyboard with oryx
+  networking.networkmanager.enable = true; # Easiest to use and most distros use this by default.
+
+  # Extra udev rule to flash zsa keyboard with oryx
   services.udev.extraRules = ''
     # Rules for Oryx web flashing and live training
     KERNEL=="hidraw*", ATTRS{idVendor}=="16c0", MODE="0664", GROUP="plugdev"
@@ -45,9 +49,9 @@
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="3297", MODE:="0666", SYMLINK+="ignition_dfu"
   '';
 
-  # wayland support for vscode in particular
+  # Wayland support for vscode in particular
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
-  
+
   environment.systemPackages = with pkgs; [
     anki-bin
     evince
@@ -62,6 +66,12 @@
     tlp
     glances
     nixfmt-rfc-style
+    element-desktop
+
+    # Particularily to get gnome files to recognize USB devices (1)
+    usbutils # Tools for working with USB devices, such as lsusb
+    udiskie # Removable disk automounter for udisks
+    udisks # Daemon, tools and libraries to access and manipulate disks, storage devices and technologies
   ];
 
   services = {
@@ -70,6 +80,11 @@
       settings.PermitRootLogin = "yes";
     };
     tlp.enable = true;
+
+    # (1)
+    gvfs.enable = true;
+    udisks2.enable = true;
+    devmon.enable = true;
 
   };
 

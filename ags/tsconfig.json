@@ -10,5 +10,6 @@
         // "allowJs": true,
         "jsx": "react-jsx",
         "jsxImportSource": "astal/gtk3",
+        
     }
 }
