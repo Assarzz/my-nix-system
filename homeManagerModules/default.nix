@@ -13,7 +13,6 @@ in
     ./niri.nix
     ./theme.nix
     ./ags.nix
-    ./nvim.nix
   ];
   xdg.userDirs.enable = true;
   xdg.userDirs.createDirectories = true;

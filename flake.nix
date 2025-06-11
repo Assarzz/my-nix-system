@@ -4,11 +4,12 @@
     niri.url = "github:sodiboo/niri-flake";
     ags.url = "github:Aylur/ags";
     #nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions/00e11463876a04a77fb97ba50c015ab9e5bee90d";
+    nvf.url = "github:notashelf/nvf";
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
-  outputs = { self, nixpkgs, home-manager, niri, ... }@inputs: let 
+  outputs = { self, nixpkgs, home-manager, niri, nvf,  ... }@inputs: let 
 
     system = "x86_64-linux";
     #pkgs = nixpkgs.legacyPackages.${system};
@@ -18,6 +19,7 @@
       modules = [ 
         ./hosts/${host}/configuration.nix 
         ./nixosModules
+        nvf.nixosModules.default
         home-manager.nixosModules.home-manager
         {
           networking.hostName = host;
