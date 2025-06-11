@@ -51,6 +51,9 @@
 
   # Wayland support for vscode in particular
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
+  # make nvim default editor
+  # environment.variables.EDITOR = "nvim";
+
 
   environment.systemPackages = with pkgs; [
     anki-bin
@@ -67,6 +70,7 @@
     glances
     nixfmt-rfc-style
     element-desktop
+    pavucontrol
 
     # Particularily to get gnome files to recognize USB devices (1)
     usbutils # Tools for working with USB devices, such as lsusb
