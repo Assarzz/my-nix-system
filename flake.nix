@@ -1,15 +1,20 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
     niri.url = "github:sodiboo/niri-flake";
+    niri.inputs.nixpkgs.follows = "nixpkgs";
+
     ags.url = "github:Aylur/ags";
-    #nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions/00e11463876a04a77fb97ba50c015ab9e5bee90d";
-    nvf.url = "github:notashelf/nvf";
+    ags.inputs.nixpkgs.follows = "nixpkgs";
+    
+    custom-neovim.url = "./neovim";
+    custom-neovim.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
-  outputs = { self, nixpkgs, home-manager, niri, nvf,  ... }@inputs: let 
+  outputs = { self, nixpkgs, home-manager, niri,  ... }@inputs: let 
 
     system = "x86_64-linux";
     #pkgs = nixpkgs.legacyPackages.${system};
@@ -19,18 +24,17 @@
       modules = [ 
         ./hosts/${host}/configuration.nix 
         ./nixosModules
-        nvf.nixosModules.default
         home-manager.nixosModules.home-manager
         {
           networking.hostName = host;
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
-            extraSpecialArgs = { inherit inputs; }; # <-- Correct way to pass inputs to Home Manager user modules
+            extraSpecialArgs = { inherit inputs; }; # Way to pass inputs to Home Manager user modules
             users.assar.imports = [
               ./hosts/${host}/home.nix
               ./homeManagerModules
-              inputs.ags.homeManagerModules.default # you need to do this here and not inside the default homemanager module so it does not become circular, because inside this function inputs in guranteed to be completed
+              inputs.ags.homeManagerModules.default # you need to do this here and not inside the default homemanager module so it does not become circular, because inside this function inputs its guranteed to be completed
               ];
           };
         }

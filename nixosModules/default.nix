@@ -15,16 +15,6 @@
     ./jp-input.nix
   ];
 
-  programs.nvf = {
-    enable = true;
-    settings = {
-      vim.theme.enable = true;
-      vim.theme.name = "gruvbox";
-      vim.theme.style = "dark";
-
-      vim.languages.nix.enable = true;
-    };
-  };
   nixpkgs.config.allowUnfree = true;
   nix.settings.experimental-features = [
     "nix-command"
@@ -64,7 +54,10 @@
   # make nvim default editor
   # environment.variables.EDITOR = "nvim";
 
-
+  nixpkgs.overlays = [
+    # The home manager neovim package expects it unwrapped before configuration is applied and i was trying to give it a completed package. All i had to do after overlay was to add it to system packages
+    (final: prev: { neovim = inputs.custom-neovim.packages.x86_64-linux.default; })
+  ];
   environment.systemPackages = with pkgs; [
     anki-bin
     evince
@@ -81,6 +74,7 @@
     nixfmt-rfc-style
     element-desktop
     pavucontrol
+    neovim
 
     # Particularily to get gnome files to recognize USB devices (1)
     usbutils # Tools for working with USB devices, such as lsusb

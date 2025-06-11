@@ -14,6 +14,7 @@ in
     ./theme.nix
     ./ags.nix
   ];
+ 
   xdg.userDirs.enable = true;
   xdg.userDirs.createDirectories = true;
 
