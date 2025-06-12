@@ -39,12 +39,21 @@
                   languages.html.enable = true;
 
                   telescope.enable = true;
-
+                  telescope.setupOpts = {
+                    pickers.buffers.initial_mode = "normal";
+                  };
                   options.tabstop = 4;
                   options.expandtab = true;
                   options.softtabstop = 4;
                   options.shiftwidth = 4;
-                  
+                  #options.clipboard = "unnamedplus";
+
+                  # fix neovim clipboard problem
+                  clipboard.enable = true;
+                  clipboard.providers.wl-copy.enable = true;
+                  clipboard.registers = "unnamedplus";
+
+
                 };
               }
             ];
