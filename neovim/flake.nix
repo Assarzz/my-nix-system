@@ -36,7 +36,9 @@
                   languages.nix.lsp.enable = true;
 
                   languages.rust.enable = true;
-
+                  languages.rust.lsp.enable = true;
+                  languages.rust.treesitter.enable = true;
+languages.rust.format.enable = true;
                   # javascript and typescript
                   languages.ts.enable = true;
                   # languages.ts.extraDiagnostics.enable = true;
@@ -91,7 +93,7 @@
 
                     ui.colorizer.enable = true; # code that sets color, the code itself will be that color
 
-                    autocomplete.nvim-cmp.enable = true;
+                    autocomplete.blink-cmp.enable = true;
                 };
               }
             ];
