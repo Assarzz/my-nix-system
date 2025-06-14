@@ -32,8 +32,17 @@
                   theme.style = "dark";
 
                   languages.nix.enable = true;
+                  languages.nix.format.enable = true;
+                  languages.nix.lsp.enable = true;
+
                   languages.rust.enable = true;
+
+                  # javascript and typescript
                   languages.ts.enable = true;
+                  # languages.ts.extraDiagnostics.enable = true;
+                  languages.ts.lsp.enable = true;
+                  languages.ts.lsp.server = "denols";
+
                   languages.python.enable = true;
                   languages.markdown.enable = true;
                   languages.html.enable = true;
@@ -53,7 +62,36 @@
                   clipboard.providers.wl-copy.enable = true;
                   clipboard.registers = "unnamedplus";
 
+                  keymaps = [
+                    {
+                      key = "<";
+                      mode = "v";
+                      silent = true;
+                      action = "<gv";
+                    }
+                    {
+                      key = ">";
+                      mode = "v";
+                      silent = true;
+                      action = ">gv";
+                    }
+                    {
+                      key = "-";
+                      mode = "n";
+                      silent = true;
+                      action = ":Oil<CR>";
+                    }
+                  ];
+                    autopairs.nvim-autopairs.enable = true; 
+                    utility.oil-nvim.enable = true;
+                    #binds.whichKey.enable = true;
+                    #binds.hardtime-nvim.enable = true;
+                    utility.motion.flash-nvim.enable = true;
+                    #filetree.neo-tree.enable = true;
 
+                    ui.colorizer.enable = true; # code that sets color, the code itself will be that color
+
+                    autocomplete.nvim-cmp.enable = true;
                 };
               }
             ];
@@ -61,3 +99,9 @@
       };
     };
 }
+
+
+
+
+
+

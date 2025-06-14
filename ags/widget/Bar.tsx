@@ -3,7 +3,7 @@ import { Variable } from "astal"
 
 const time = Variable("").poll(1000, "date")
 
-rkcbeg qrsnhyg shapgvba One(tqxzbavgbe: Tqx.Zbavgbe) {
+export default function Bar(gdkmonitor: Gdk.Monitor) {
     const { TOP, LEFT, RIGHT } = Astal.WindowAnchor
 
     return <window
@@ -29,4 +29,3 @@ rkcbeg qrsnhyg shapgvba One(tqxzbavgbe: Tqx.Zbavgbe) {
         </centerbox>
     </window>
 }
-

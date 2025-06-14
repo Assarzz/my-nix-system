@@ -13,6 +13,7 @@
     ./sound.nix
     ./nas.nix
     ./jp-input.nix
+    ./anki.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -59,7 +60,6 @@
     (final: prev: { neovim = inputs.custom-neovim.packages.x86_64-linux.default; })
   ];
   environment.systemPackages = with pkgs; [
-    anki-bin
     evince
     calibre
     wget
@@ -75,6 +75,7 @@
     element-desktop
     pavucontrol
     neovim
+    lean4
 
     # Particularily to get gnome files to recognize USB devices (1)
     usbutils # Tools for working with USB devices, such as lsusb
@@ -108,4 +109,8 @@
     dina-font
     proggyfonts
   ];
+  # for some reason qt theme is defined in nixos moduels while gtk is in home manager
+/*   qt = {
+    style = "adwaita-dark";
+  }; */
 }
