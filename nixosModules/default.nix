@@ -14,6 +14,7 @@
     ./nas.nix
     ./jp-input.nix
     ./anki.nix
+    ./stylix.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -21,6 +22,23 @@
     "nix-command"
     "flakes"
   ];
+
+/*     nixpkgs.overlays = [
+      (final: prev: {
+        calibre = prev.calibre.overrideAttrs (oldAttrs: {
+          # 1. Add theme packages to Calibre's runtime dependencies
+          buildInputs = oldAttrs.buildInputs ++ [
+            final.adwaita-qt6 # Provides the actual theme files
+          ];
+
+          # 2. Add the Qt wrapper hook to its native build inputs
+          nativeBuildInputs = oldAttrs.nativeBuildInputs ++ [
+            final.qt6.wrapQtAppsHook
+          ];
+
+        });
+      })
+    ]; */
 
   # Boot settings
   # Use the systemd-boot EFI boot loader.
@@ -55,10 +73,10 @@
   # make nvim default editor
   # environment.variables.EDITOR = "nvim";
 
-  nixpkgs.overlays = [
-    # The home manager neovim package expects it unwrapped before configuration is applied and i was trying to give it a completed package. All i had to do after overlay was to add it to system packages
-    (final: prev: { neovim = inputs.custom-neovim.packages.x86_64-linux.default; })
-  ];
+  #nixpkgs.overlays = [
+  #  # The home manager neovim package expects it unwrapped before configuration is applied and i was trying to give it a completed package. All i had to do after overlay was to add it to system packages
+  #  (final: prev: { neovim = inputs.custom-neovim.packages.x86_64-linux.default; })
+  #];
   environment.systemPackages = with pkgs; [
     evince
     calibre
@@ -74,8 +92,9 @@
     nixfmt-rfc-style
     element-desktop
     pavucontrol
-    neovim
+    #neovim
     lean4
+  
 
     # Particularily to get gnome files to recognize USB devices (1)
     usbutils # Tools for working with USB devices, such as lsusb

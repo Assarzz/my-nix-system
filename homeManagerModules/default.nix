@@ -13,13 +13,19 @@ in
     ./niri.nix
     ./theme.nix
     ./ags.nix
+    ./nvim.nix
   ];
+
+  stylix.targets.vscode.enable = false;
+  stylix.targets.niri.enable = false;
 
   xdg.userDirs.enable = true;
   xdg.userDirs.createDirectories = true;
 
   home = {
-    packages = with pkgs; [ hello ];
+    packages = with pkgs; [ 
+    hello
+    ];
     username = "assar";
     homeDirectory = "/home/assar";
     stateVersion = "25.05";
@@ -37,6 +43,7 @@ in
     };
   };
 
+  services.mako.enable = true;
   programs = {
     git = {
       enable = true;
