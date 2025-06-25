@@ -1,24 +1,20 @@
 import { App, Astal, Gtk, Gdk } from "astal/gtk3"
 import { Variable } from "astal"
-// import BatteryWidget from "./Battery"
 
-const time = Variable("").poll(1000, "date")
+const pollTime = 1000
+const time = Variable("").poll(pollTime, "date")
 
-import Battery from "gi://AstalBattery"
-
-const battery = Battery.get_default()
-
-print(battery.percentage)
-export default function Bar(gdkmonitor: Gdk.Monitor) {
+export default function Overlay(gdkmonitor: Gdk.Monitor) {
     const { TOP, LEFT, RIGHT } = Astal.WindowAnchor
 
     return <window
-        className="Bar"
+        className="Overlay"
         gdkmonitor={gdkmonitor}
         exclusivity={Astal.Exclusivity.EXCLUSIVE}
         anchor={TOP | LEFT | RIGHT}
         application={App}>
 
+        // power
         <centerbox>
             <button
                 onClicked="echo hello"
@@ -26,8 +22,6 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
                     Welcome again we are so back!
             </button>
         </centerbox>
-
-
+    
     </window>
 }
-    // <BatteryWidget/>

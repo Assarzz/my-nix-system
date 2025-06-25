@@ -47,10 +47,10 @@ vim.opt.splitbelow = true --split horizontal window to the bottom
 
 vim.opt.isfname:append("@-@")
 vim.opt.updatetime = 50
-vim.opt.colorcolumn = "80"
+--vim.opt.colorcolumn = "80" removed because some weird vertical line to the middle left of the screen
 
 -- clipboard
-vim.opt.clipboard:append("unnamedplus") --use system clipboard as default
+vim.opt.clipboard = "unnamedplus" --use system clipboard as default
 vim.opt.hlsearch = true
 
 -- for easy mouse resizing, just incase

@@ -14,7 +14,6 @@
     ./nas.nix
     ./jp-input.nix
     ./anki.nix
-    ./stylix.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -56,6 +55,9 @@
   # jp keyboard
   jpInput = true;
 
+
+  environment.variables.EDITOR = "hx";
+
   networking.networkmanager.enable = true; # Easiest to use and most distros use this by default.
 
   # Extra udev rule to flash zsa keyboard with oryx
@@ -94,7 +96,9 @@
     pavucontrol
     #neovim
     lean4
-  
+    cargo
+    rustc
+    chromium
 
     # Particularily to get gnome files to recognize USB devices (1)
     usbutils # Tools for working with USB devices, such as lsusb

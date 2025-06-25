@@ -17,6 +17,9 @@
     stylix.url = "github:danth/stylix";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
 
+    helix.url = "github:helix-editor/helix";
+    helix.inputs.nixpkgs.follows = "nixpkgs";
+
   };
   outputs =
     {
@@ -30,7 +33,6 @@
     let
 
       system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
       mkSystem =
         host:
         nixpkgs.lib.nixosSystem {
@@ -43,7 +45,7 @@
             ({pkgs, config, ...}:{
               stylix.enable = true;
               # https://tinted-theming.github.io/tinted-gallery/
-              stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/ayu-dark.yaml";
+              stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark.yaml";
 
               stylix.fonts.monospace.package = pkgs.nerd-fonts.fira-code;
               stylix.fonts.monospace.name = "FiraCode Nerd Font";
@@ -53,8 +55,8 @@
 
               stylix.fonts.serif = config.stylix.fonts.sansSerif;
 
-              stylix.fonts.sizes.applications = 10;
-              stylix.fonts.sizes.desktop = 12;
+              #stylix.fonts.sizes.applications = 10;
+              #stylix.fonts.sizes.desktop = 12;
             })
             home-manager.nixosModules.home-manager
             {
