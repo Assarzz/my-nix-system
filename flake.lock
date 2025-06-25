@@ -304,23 +304,6 @@
         "type": "github"
       }
     },
-    "my-neovim": {
-      "inputs": {
-        "nixCats": "nixCats",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "path": "./nvim",
-        "type": "path"
-      },
-      "original": {
-        "path": "./nvim",
-        "type": "path"
-      },
-      "parent": []
-    },
     "niri": {
       "inputs": {
         "niri-stable": "niri-stable",
@@ -376,21 +359,6 @@
       "original": {
         "owner": "YaLTeR",
         "repo": "niri",
-        "type": "github"
-      }
-    },
-    "nixCats": {
-      "locked": {
-        "lastModified": 1749615682,
-        "narHash": "sha256-3T2Yl+xSnx7snXZkMaQNHCvlj0CB+lyAj+Q/+eeh+Ns=",
-        "owner": "BirdeeHub",
-        "repo": "nixCats-nvim",
-        "rev": "c0148957e961100bff3fd213b8a4bc5f669f3028",
-        "type": "github"
-      },
-      "original": {
-        "owner": "BirdeeHub",
-        "repo": "nixCats-nvim",
         "type": "github"
       }
     },
@@ -457,7 +425,6 @@
         "ags": "ags",
         "helix": "helix",
         "home-manager": "home-manager",
-        "my-neovim": "my-neovim",
         "niri": "niri",
         "nixpkgs": "nixpkgs",
         "stylix": "stylix"

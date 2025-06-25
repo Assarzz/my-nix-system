@@ -13,7 +13,6 @@ in
     ./niri.nix
     ./theme.nix
     ./ags.nix
-    ./nvim.nix
   ];
 
   stylix.targets.vscode.enable = false;
