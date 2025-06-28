@@ -65,6 +65,21 @@ in
         ms-python.vscode-pylance
       ];
     };
+    bash = {
+      enable = true;
+      # ... other bash configuration
+      initExtra = ''
+        function y() {
+          local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+          yazi "$@" --cwd-file="$tmp"
+          local cwd="$(cat "$tmp")"
+          rm -f "$tmp"
+          if [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+            builtin cd "$cwd"
+          fi
+        }
+      '';
+    };
     helix = {
       enable = true;
       package = inputs.helix.packages.${pkgs.system}.default;

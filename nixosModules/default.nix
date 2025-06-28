@@ -106,6 +106,11 @@
     udisks # Daemon, tools and libraries to access and manipulate disks, storage devices and technologies
   ];
 
+
+  # particulariy to be able to unzip files in gnome files
+  programs.file-roller.enable = true;
+
+
   services = {
     openssh = {
       enable = true;
