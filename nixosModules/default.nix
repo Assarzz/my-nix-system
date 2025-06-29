@@ -14,6 +14,7 @@
     ./nas.nix
     ./jp-input.nix
     ./anki.nix
+    ./boot.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -39,11 +40,6 @@
       })
     ]; */
 
-  # Boot settings
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
   console = {
@@ -54,7 +50,6 @@
 
   # jp keyboard
   jpInput = true;
-
 
   environment.variables.EDITOR = "hx";
 
