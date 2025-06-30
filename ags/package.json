@@ -1,7 +1,0 @@
-{
-    "name": "astal-shell",
-    "dependencies": {
-        "astal": "/home/assar/.local/share/ags",
-        "typescript": "^5.7.1-rc"
-    }
-}
