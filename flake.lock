@@ -32,11 +32,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1751344891,
-        "narHash": "sha256-OSIzQVdSHOOUA377kww2n0ZsaEwVub+o1WZOZS0GJa4=",
+        "lastModified": 1751348041,
+        "narHash": "sha256-/xPUlQ3I1Mrxsg+4kdWvaw0RaUuPXCx1GasnHTDvkL0=",
         "owner": "Assarzz",
         "repo": "ags_overlay",
-        "rev": "f65144740891b82b0d40a819d4bc385ddafe9970",
+        "rev": "8a7f3ab2c1400ab3d3b798bd770b53cc713242ec",
         "type": "github"
       },
       "original": {
