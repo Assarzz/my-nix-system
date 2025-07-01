@@ -22,6 +22,29 @@
         "type": "github"
       }
     },
+    "ags_system": {
+      "inputs": {
+        "ags": [
+          "ags"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1751344891,
+        "narHash": "sha256-OSIzQVdSHOOUA377kww2n0ZsaEwVub+o1WZOZS0GJa4=",
+        "owner": "Assarzz",
+        "repo": "ags_overlay",
+        "rev": "f65144740891b82b0d40a819d4bc385ddafe9970",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Assarzz",
+        "repo": "ags_overlay",
+        "type": "github"
+      }
+    },
     "astal": {
       "inputs": {
         "nixpkgs": [
@@ -440,6 +463,7 @@
     "root": {
       "inputs": {
         "ags": "ags",
+        "ags_system": "ags_system",
         "helix": "helix",
         "home-manager": "home-manager",
         "niri": "niri",

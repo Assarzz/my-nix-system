@@ -17,6 +17,11 @@
     helix.url = "github:helix-editor/helix";
     helix.inputs.nixpkgs.follows = "nixpkgs";
 
+    ags_system.url = "github:Assarzz/ags_overlay";
+    ags_system.inputs.nixpkgs.follows = "nixpkgs";
+    ags_system.inputs.ags.follows = "ags";
+
+
   };
   outputs =
     {
