@@ -1,3 +1,4 @@
+# pioneer256 embarked on unknown a journey, what they found made them not want to go back, and even long for a better ship, they had only 256GB of storage.
 { config, lib, pkgs, ... }:
 let
   portssd = "/mnt/portssd";

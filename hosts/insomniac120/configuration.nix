@@ -1,10 +1,8 @@
-# strategist is such a loyal ally it leads the user to total isolation not longing for more, who knows if that is good or bad.
+# insomniac120 can't sleep because its always terrifed of a potential power spike pushing it over 120W.
 { config, lib, pkgs, ... }:
 
 {
 
-  #steam.enable = true;
-  nas.client.enable = true;
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
