@@ -1,10 +1,5 @@
-{ lib, config, ... }:
 let
-  cfg = config.steam;
-in
-{
-  options.steam.enable = lib.mkEnableOption "enable steam";
-  config = lib.mkIf cfg.enable {
+  steam = {
     programs.steam = {
       enable = true;
       remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
@@ -12,4 +7,10 @@ in
       localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
     };
   };
+in
+{
+  igniter.modules = [ steam ];
+  #strategist.modules = [steam];
+  #pioneer256.modules = [steam];
+
 }

@@ -132,17 +132,21 @@
         const flat_merge
       ) all_modules;
       
-      # change the values from normal attrSets to nixosSystem attrSets
+      # Change the values from normal attrSets to nixosSystem attrSets.
       # nixosSystem expects {system = ""; modules = [ mod1 mod2 ];}
-      # one nixos module that gets imported specifies _module.args.home_modules = [ hm1 hm2 hm3]
       configs = builtins.mapAttrs (const (
         config:
         nixpkgs.lib.nixosSystem {
           inherit (config) system;
           modules = config.modules ++ [
+            # Special module added to give access to home_modules inside the nixos module that sets up home-manager
+            # Modules defined here have special privlages in that they can access inputs without going via specialArgs, it feel like magic.
+            # Basically we utalize that config gives access to anything defined in a module.
+            # could you not just have done magic.home_modules = config.home_modules; by this same logic??
+            # the usage in relevent module seems to confirm this theory: "_module.args.home_modules = config.home_modules;" 
+            # Instead of just going directly via "home_modules" that should be provided as an module input.
+            # TODO check this out!
             {
-              # instead of specifying the paths to the hm modules with something like home-manager.users.assar.imports = [ ./path ]
-              # we provide them directly
               _module.args.home_modules = config.home_modules;
             }
           ];
