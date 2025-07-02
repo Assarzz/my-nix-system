@@ -21,7 +21,6 @@
     ags_system.inputs.nixpkgs.follows = "nixpkgs";
     ags_system.inputs.ags.follows = "ags";
 
-
   };
   outputs =
     {
@@ -34,35 +33,121 @@
     }@inputs:
     with nixpkgs.lib;
     let
+      # match: attrSet -> string -> attrSet. Gets the attribute with name
+      match = flip getAttr;
 
-      # resluts in a function that given a string, if string is "regular" return "dir/name"
-      # or if "directory" return
-      match = flip getAttr; # match :: attrSet -> string -> attrSet. gets the attribute with name
-
-      test =
-        this: # this is the path of some file or directory
-        match {
-
-          # directory = {name = "${this}/${subpath}"; value =  }
-          directory = mapAttrs' (subpath: nameValuePair "${this}/${subpath}") (
-            read_dir_recursively "${dir}/${this}"
-          );
-          regular = {
-            ${this} = "${dir}/${this}";
-          };
-          symlink = { };
-        };
+      # dir0 -> {a.mod.nix = dir0/a.mod.nix; b.mod.nix = dir0/b.mod.nix; dir1/c.mod.nix = dir0/dir1/c.mod.nix;}
+      # important, only files are included in the final set, not empty folders
       read_dir_recursively =
-        dir: # dir ->
-        concatMapAttrs test (builtins.readDir dir); # {a.mod.nix = "regular"; b = "directory"; c.mod.nix = "regular"; }
+        dir:
+        let
+          # name -> {name = dir/name; } or name -> {name = dir/name; }. Returns the value of either attribute (1) or (2)
+          name_to_dir_slash_name = (
+            this: # some file or directory name, not some absolute path
 
-      # `const` helper function is used extensively: the function is constant in regards to the name of the attribute.
+            # string -> attrSet
+            match {
+
+              # (1) directory = {name = "${this}/${subpath}"; value =  }
+              directory =
+                let
+                  # returns (subpath: value: {name = "${this}/${subpath}"; value = value;})
+                  subPathAndValueToSubPath2AndValue = (subpath: nameValuePair "${this}/${subpath}");
+                in
+                mapAttrs' subPathAndValueToSubPath2AndValue (read_dir_recursively "${dir}/${this}");
+              # (2)
+              regular = {
+                ${this} = "${dir}/${this}";
+              };
+              symlink = { };
+            }
+          );
+        in
+        concatMapAttrs name_to_dir_slash_name (builtins.readDir dir); # {a.mod.nix = "regular"; b = "directory"; c.mod.nix = "regular"; }
+
+      # {self, nixpkgs, configs, elements, merge, extras}
+      # what happens when params gets evaluated? if we believe in thunks and the arcane art of making every attribute in a set its own thunk this apparantly works.
+      # because then evaluating params does not mean evaluating raw_configs (this would cause infinite recursion i think)
+      # but that means surely we cant evaluate params.configs
+      params = inputs // {
+        configs = raw_configs;
+        machines = {
+          strategist = {};
+          pioneer256 = {};
+          igniter = {};
+          vm1 = {};
+        };
+        # no parethesis means it looks for these in the outside scope and adds them both to the attrSet. its not calling a function
+        inherit merge;
+      };
+
+      # Function that takes the flake itself to pipe through all the below functions.
+      # It is converted to the absolute store path, the root directory, automatically.
+      # after this we have all the values in the attrS be finished module attribute sets (the function has been called)
       read_all_modules = flip pipe [
         read_dir_recursively
+
+        # (const (hasSuffix ".mod.nix")) :: Any -> (String -> Bool)
+        # basically we only have those paths with .mod.nix left in the attrSet
         (filterAttrs (flip (const (hasSuffix ".mod.nix"))))
+
+        # (const import) :: Any -> (path -> attrSet)
+        # "test.mod.nix" :: Any, "/nix/store/nw...ce/test.mod.nix" :: path
+        # resulting in {"test.mod.nix" = <imported expression>; ...}
         (mapAttrs (const import))
+
+        # Shenanigans is done which results in the piped attribute is either turned in to a function or already is a function, and then params is passed giving us the finished modules.
+        # The core lies in the fact that toFunction acts differently depending on if input already is function or not. Coming up with this is insane.
         (mapAttrs (const (flip toFunction params)))
       ];
+      # input can be something like personal
+      #{ modules = [ a ]; system = "1";} : {modules = [ b ]; system = "2";} : {modules = [ a b ]; home_modules = []; system = "1";}
+      merge =
+        prev: this:
+        {
+          # if there exists prev.modules take that otherwise empty module list
+          modules = prev.modules or [ ] ++ this.modules or [ ];
+          home_modules = prev.home_modules or [ ] ++ this.home_modules or [ ];
+        }
+        # if this or prev has system attribute incldue it
+        // (optionalAttrs (prev ? system || this ? system) {
+          system = prev.system or this.system;
+        });
+
+      # list of the nix expressions from every n.mod.nix module with function already called
+      # [ {  personal.modules = [{pkgs, ...} : {}]; } {  somebodys.home_modules = [{pkgs, someparam, ...} : { env = "hi";}]; } ]
+      all_modules = attrValues (read_all_modules "${self}");
+
+      # builtins.foldl' :: (a -> b -> a) -> a -> [b] -> a
+      # builtins.foldl' merge { } :: [b] -> a
+      flat_merge = builtins.foldl' merge { };
+
+      # mergeAttrsList means normal merge.
+      # We specify a function that decides what to happen when two sets have the same attribute, like personal.
+      # machine is something like personal
+      # for zipAttrsWith we specify how given the attribute name and a list of all the attribute values that share that name what the attribute value for that name will be in the final attribute set
+      # We dont want the result to be [ [mod1 mod2] [mod3 mod4]], we want [mod1 mod2 mod3 mod4]
+      # result {personal = {modules = [mod1 mod2 mod3 mod4]; system = "x86_64-linux"; home_modules = [] }; somebody = {...}}
+      raw_configs = builtins.zipAttrsWith (
+        const flat_merge
+      ) all_modules;
+      
+      # change the values from normal attrSets to nixosSystem attrSets
+      # nixosSystem expects {system = ""; modules = [ mod1 mod2 ];}
+      # one nixos module that gets imported specifies _module.args.home_modules = [ hm1 hm2 hm3]
+      configs = builtins.mapAttrs (const (
+        config:
+        nixpkgs.lib.nixosSystem {
+          inherit (config) system;
+          modules = config.modules ++ [
+            {
+              # instead of specifying the paths to the hm modules with something like home-manager.users.assar.imports = [ ./path ]
+              # we provide them directly
+              _module.args.home_modules = config.home_modules;
+            }
+          ];
+        }
+      )) raw_configs;
 
       system = "x86_64-linux";
       mkSystem =
@@ -112,12 +197,10 @@
     in
     {
 
-      nixosConfigurations = {
-        vm1 = mkSystem "vm1";
-        pioneer256 = mkSystem "pioneer256";
-        igniter = mkSystem "igniter";
-        strategist = mkSystem "strategist";
-      };
+      # change values of the params.machines attrSet to corresponding one from configs attrSet
+      # we only use one of the nixosConfigurations outputs for any machine like strategist
+      nixosConfigurations = builtins.mapAttrs (name: const configs.${name}) params.machines;
+
     };
   nixConfig = {
     extra-substituters = [
