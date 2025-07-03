@@ -166,8 +166,6 @@
       # change values of the params.machines attrSet to corresponding one from configs attrSet
       # we only use one of the nixosConfigurations outputs for any machine like strategist
       nixosConfigurations = builtins.mapAttrs (name: const configs.${name}) params.machines;
-      all_modules = all_modules;
-      raw_configs=raw_configs;
     };
     
   nixConfig = {

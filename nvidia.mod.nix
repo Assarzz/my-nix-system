@@ -1,9 +1,3 @@
-<<<<<<< HEAD:hosts/igniter/configuration.nix
-# igniter lit a fire, in me figuratively but also any bug that wanders too close
-{ config, lib, pkgs, ... }:
-
-=======
->>>>>>> auto_central_module_rewrite:nvidia.mod.nix
 {
   igniter.modules = [
     ({config, ...}:{
