@@ -7,7 +7,6 @@
         environment.systemPackages = with pkgs; [
           evince
           calibre
-          (import ../update-git.nix { inherit pkgs; })
           keepassxc
           dua
           glances

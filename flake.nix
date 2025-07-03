@@ -5,10 +5,6 @@
     niri.url = "github:sodiboo/niri-flake";
     niri.inputs.nixpkgs.follows = "nixpkgs";
 
-
-
-    #inputs.ags.homeManagerModules.default # you need to do this here and not inside the default homemanager module so it does not become circular, because inside this function inputs its guranteed to be completed
-
     ags.url = "github:Aylur/ags";
     ags.inputs.nixpkgs.follows = "nixpkgs";
 
