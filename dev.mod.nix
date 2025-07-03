@@ -1,5 +1,5 @@
-{
-  universal.moduels = [
+{           
+  universal.modules = [
     (
       { pkgs, ... }:
       {
@@ -9,6 +9,7 @@
           rustc
           nixfmt-rfc-style # formatter for nix
         ];
+        
       }
     )
   ];

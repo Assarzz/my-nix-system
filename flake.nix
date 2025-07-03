@@ -5,6 +5,10 @@
     niri.url = "github:sodiboo/niri-flake";
     niri.inputs.nixpkgs.follows = "nixpkgs";
 
+
+
+    #inputs.ags.homeManagerModules.default # you need to do this here and not inside the default homemanager module so it does not become circular, because inside this function inputs its guranteed to be completed
+
     ags.url = "github:Aylur/ags";
     ags.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -38,6 +42,7 @@
 
       # dir0 -> {a.mod.nix = dir0/a.mod.nix; b.mod.nix = dir0/b.mod.nix; dir1/c.mod.nix = dir0/dir1/c.mod.nix;}
       # important, only files are included in the final set, not empty folders
+      # self is passed which gets evaluated to the this flakes location in the nix store
       read_dir_recursively =
         dir:
         let
@@ -65,7 +70,7 @@
         in
         concatMapAttrs name_to_dir_slash_name (builtins.readDir dir); # {a.mod.nix = "regular"; b = "directory"; c.mod.nix = "regular"; }
 
-      # {self, nixpkgs, configs, elements, merge, extras}
+      # {self, nixpkgs, configs, machines, merge, extras}
       # what happens when params gets evaluated? if we believe in thunks and the arcane art of making every attribute in a set its own thunk this apparantly works.
       # because then evaluating params does not mean evaluating raw_configs (this would cause infinite recursion i think)
       # but that means surely we cant evaluate params.configs
@@ -100,7 +105,7 @@
         # The core lies in the fact that toFunction acts differently depending on if input already is function or not. Coming up with this is insane.
         (mapAttrs (const (flip toFunction params)))
       ];
-      # input can be something like personal
+      # input can be something like universal.
       #{ modules = [ a ]; system = "1";} : {modules = [ b ]; system = "2";} : {modules = [ a b ]; home_modules = []; system = "1";}
       merge =
         prev: this:
@@ -115,7 +120,7 @@
         });
 
       # list of the nix expressions from every n.mod.nix module with function already called
-      # [ {  personal.modules = [{pkgs, ...} : {}]; } {  somebodys.home_modules = [{pkgs, someparam, ...} : { env = "hi";}]; } ]
+      # [ ... { universal = { modules = [ { boot = { loader = { efi = { canTouchEfiVariables = true; }; systemd-boot = { enable = true; }; }; }; } ]; }; }      all_modules = attrValues (read_all_modules "${self}"); ... ]
       all_modules = attrValues (read_all_modules "${self}");
 
       # builtins.foldl' :: (a -> b -> a) -> a -> [b] -> a
@@ -131,6 +136,7 @@
       raw_configs = builtins.zipAttrsWith (
         const flat_merge
       ) all_modules;
+
       
       # Change the values from normal attrSets to nixosSystem attrSets.
       # nixosSystem expects {system = ""; modules = [ mod1 mod2 ];}
@@ -148,64 +154,22 @@
             # TODO check this out!
             {
               _module.args.home_modules = config.home_modules;
+
             }
           ];
         }
       )) raw_configs;
 
-      system = "x86_64-linux";
-      mkSystem =
-        host:
-        nixpkgs.lib.nixosSystem {
-          inherit system;
-          specialArgs = { inherit inputs; };
-          modules = [
-            ./hosts/${host}/configuration.nix
-            ./nixosModules
-            stylix.nixosModules.stylix
-            (
-              { pkgs, config, ... }:
-              {
-                stylix.enable = true;
-                # https://tinted-theming.github.io/tinted-gallery/
-                stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark.yaml";
-
-                stylix.fonts.monospace.package = pkgs.nerd-fonts.fira-code;
-                stylix.fonts.monospace.name = "FiraCode Nerd Font";
-
-                stylix.fonts.sansSerif.package = pkgs.nerd-fonts.ubuntu;
-                stylix.fonts.sansSerif.name = "Ubuntu Nerd Font";
-
-                stylix.fonts.serif = config.stylix.fonts.sansSerif;
-
-                #stylix.fonts.sizes.applications = 10;
-                #stylix.fonts.sizes.desktop = 12;
-              }
-            )
-            home-manager.nixosModules.home-manager
-            {
-              networking.hostName = host;
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                extraSpecialArgs = { inherit inputs; }; # Way to pass inputs to Home Manager user modules
-                users.assar.imports = [
-                  ./hosts/${host}/home.nix
-                  ./homeManagerModules
-                  inputs.ags.homeManagerModules.default # you need to do this here and not inside the default homemanager module so it does not become circular, because inside this function inputs its guranteed to be completed
-                ];
-              };
-            }
-          ];
-        };
     in
     {
 
       # change values of the params.machines attrSet to corresponding one from configs attrSet
       # we only use one of the nixosConfigurations outputs for any machine like strategist
       nixosConfigurations = builtins.mapAttrs (name: const configs.${name}) params.machines;
-
+      all_modules = all_modules;
+      raw_configs=raw_configs;
     };
+    
   nixConfig = {
     extra-substituters = [
       "https://nix-community.cachix.org"

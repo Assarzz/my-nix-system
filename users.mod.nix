@@ -1,6 +1,7 @@
 {
   universal.modules = [
     ({
+      
       users.mutableUsers = true; # Not planning on mutating users, but being able to accidentaly change my password seems scary
       users.users.assar = {
         isNormalUser = true;
@@ -19,4 +20,16 @@
       };
     })
   ];
+
+  igniter.modules = [{networking.hostName = "igniter";}];
+  pioneer256.modules = [{networking.hostName = "pioneer256";}];
+  strategist.modules = [{networking.hostName = "strategist";}];
+  insomniac120.modules = [{networking.hostName = "insomniac120";}];
+
+  igniter.system = "x86_64-linux";
+  pioneer256.system = "x86_64-linux";
+  strategist.system = "x86_64-linux";
+  insomniac120.system = "x86_64-linux";
+
+
 }

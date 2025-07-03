@@ -10,7 +10,7 @@ in
     (
       {
         pkgs,
-        lib,
+        lib, ...
       }:
       {
         # Create user directories.

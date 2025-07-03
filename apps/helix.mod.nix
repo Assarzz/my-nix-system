@@ -1,5 +1,5 @@
 {helix, ...}:{
-  universal.moduels = [
+  universal.modules = [
     {
       environment.variables.EDITOR = "hx";
 

@@ -1,11 +1,12 @@
 {
-  strategist.moduels = [
+  strategist.modules = [
     (
       { pkgs, ... }:
       {
         environment.systemPackages = with pkgs; [
-          tlp
+          tlp # do i even need this when i have enabled tlp in home-manager? TODO check this
         ];
+
       }
     )
   ];
