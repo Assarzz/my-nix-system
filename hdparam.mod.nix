@@ -1,6 +1,6 @@
 {
   insomniac120.modules = [
-    {
+    ({pkgs, lib, ...}:{
       services.udev.extraRules =
         let
           mkRule = as: lib.concatStringsSep ", " as;
@@ -12,9 +12,9 @@
             ''SUBSYSTEM=="block"''
             ''KERNEL=="sd[a-z]"''
             ''ATTR{queue/rotational}=="1"''
-            ''RUN+="${pkgs.hdparm}/bin/hdparm -B 90 -S 1 /dev/%k"''
+            ''RUN+="${pkgs.hdparm}/bin/hdparm -B 90 -S 166 /dev/%k"''
           ])
         ]);
-    }
+    })
   ];
 }

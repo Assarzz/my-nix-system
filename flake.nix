@@ -77,6 +77,7 @@
           pioneer256 = {};
           igniter = {};
           vm1 = {};
+	  insomniac120 = {};
         };
         # no parethesis means it looks for these in the outside scope and adds them both to the attrSet. its not calling a function
         inherit merge;
