@@ -1,5 +1,5 @@
 {
-  insomniac120.modules = [
+/*   insomniac.modules = [
     ({pkgs, lib, ...}:{
       services.udev.extraRules =
         let
@@ -12,9 +12,9 @@
             ''SUBSYSTEM=="block"''
             ''KERNEL=="sd[a-z]"''
             ''ATTR{queue/rotational}=="1"''
-            ''RUN+="${pkgs.hdparm}/bin/hdparm -B 90 -S 166 /dev/%k"''
+            ''RUN+="${pkgs.hdparm}/bin/hdparm -B 90 /dev/%k"''
           ])
         ]);
     })
-  ];
+  ]; */
 }

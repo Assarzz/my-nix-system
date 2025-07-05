@@ -11,6 +11,6 @@ in
 {
   igniter.modules = [ steam ];
   #strategist.modules = [steam];
-  #pioneer256.modules = [steam];
+  #pioneer.modules = [steam];
 
 }

@@ -3,8 +3,8 @@
   configs,
   ...
 }: {
-  strategist = configs.universal;
-  pioneer256 = configs.universal;
-  igniter = configs.universal;
-  insomniac120 = configs.universal;
+  strategist = merge configs.universal configs.personal;
+  pioneer = merge configs.universal configs.personal;
+  igniter = merge configs.universal configs.personal;
+  insomniac = configs.universal;
 }

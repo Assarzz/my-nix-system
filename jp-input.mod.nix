@@ -1,5 +1,5 @@
 {
-  universal.modules = [
+  personal.modules = [
     ({pkgs, ...}:{
       i18n.inputMethod = {
         enable = true;

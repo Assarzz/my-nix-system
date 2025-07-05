@@ -1,7 +1,7 @@
 {
-  universal.modules = [
+/*   universal.modules = [
     {
       services.mullvad-vpn.enable = true;
     }
-  ];
+  ]; */
 }

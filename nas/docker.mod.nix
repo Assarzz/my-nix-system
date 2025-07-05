@@ -1,7 +1,8 @@
+
 {
   universal.modules = [
 
-    {
+/*     {
       virtualisation.docker = {
         # Disabling the system wide Docker daemon.
         enable = false;
@@ -11,7 +12,7 @@
           setSocketVariable = true;
         };
       };
-    }
+    } */
 /*     (
       { config, pkgs, ... }:
 

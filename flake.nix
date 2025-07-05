@@ -74,10 +74,10 @@
         configs = raw_configs;
         machines = {
           strategist = {};
-          pioneer256 = {};
+          pioneer = {};
           igniter = {};
           vm1 = {};
-	  insomniac120 = {};
+	  insomniac = {};
         };
         # no parethesis means it looks for these in the outside scope and adds them both to the attrSet. its not calling a function
         inherit merge;

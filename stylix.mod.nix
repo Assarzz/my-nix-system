@@ -1,7 +1,7 @@
 { stylix, ... }:
 {
 
-  universal.modules = [
+  personal.modules = [
     stylix.nixosModules.stylix
 
     (

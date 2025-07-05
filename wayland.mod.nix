@@ -1,7 +1,7 @@
 # Configuration that while it is necessary to get some specific feature working, it fundamentally has to do with wayland itself.
 
 {
-  universal.modules = [
+  personal.modules = [
     (
       { pkgs, ... }:
       {

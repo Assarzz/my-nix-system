@@ -13,9 +13,9 @@
     - config, which is available inside of modules, it gives access to configuration in any other module
 */
 
-{ niri, ags_system, ... }:
+{ niri, ... }:
 {
-  universal.modules = [
+  personal.modules = [
     niri.nixosModules.niri
 
     (
@@ -28,7 +28,7 @@
     )
   ];
 
-  universal.home_modules = [
+  personal.home_modules = [
 
     (
       { config, ... }:
@@ -56,9 +56,6 @@
             };
 
           };
-          spawn-at-startup = [
-            { command = [ "${ags_system.packages.x86_64-linux.default}/bin/my-shell" ]; }
-          ];
 
           binds = with config.lib.niri.actions; {
             "Mod+T".action = spawn "alacritty";
