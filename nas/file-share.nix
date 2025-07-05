@@ -5,32 +5,58 @@
   This is a preparatory step on the server to create a common base directory for your NFS exports.
 */
 
-
 # backup+share : like document files, and media files
 # share : for things that are temporary and i just want universal access to.
 # backup+sync : password file, git server maybe
 
-/* {
-  insomniac.modules = [
-    {
-      fileSystems."/export/mafuyu" = {
-        device = "/mnt/mafuyu";
-        options = [ "bind" ];
-      };
+{
+  insomniac.modules =
+    let
+      nasDevice = "/dev/disk/by-label/nas";
+      nasMountPoint = "/mnt/nas";
+    in
+    [
+      {
 
-    }
+        fileSystems.${nasMountPoint} = {
+          device = nasDevice;
+          fsType = "ext4";
+        };
+        fileSystems."/export/share" = {
+          device = nasMountPoint;
+          options = [ "bind" ];
+        };
 
-    # server setup
-    {
-      services.nfs.server.enable = true;
-      services.nfs.server.exports = ''
-        /export         192.168.1.10(rw,fsid=0,no_subtree_check) 192.168.1.15(rw,fsid=0,no_subtree_check)
-        /export/kotomi  192.168.1.10(rw,nohide,insecure,no_subtree_check) 192.168.1.15(rw,nohide,insecure,no_subtree_check)
-        /export/mafuyu  192.168.1.10(rw,nohide,insecure,no_subtree_check) 192.168.1.15(rw,nohide,insecure,no_subtree_check)
-        /export/sen     192.168.1.10(rw,nohide,insecure,no_subtree_check) 192.168.1.15(rw,nohide,insecure,no_subtree_check)
-        /export/tomoyo  192.168.1.10(rw,nohide,insecure,no_subtree_check) 192.168.1.15(rw,nohide,insecure,no_subtree_check)
-      '';
-    }
-  ];
+        services.samba = {
+          enable = true;
+          openFirewall = true;
+
+          settings = {
+            global = {
+              security = "user";
+              "map to guest" = "Bad User";
+              "guest account" = "nobody";
+              # … any hosts allow/deny you already have …
+            };
+
+            public = {
+              browseable = "yes";
+              comment = "Public samba share.";
+              "guest ok" = "yes";
+              "read only" = "no";
+              writable = "yes";
+              path = "/export/share";
+              "force user" = "nobody";
+              "create mask" = "0666";
+              "directory mask" = "0777";
+              # for ios
+              "vfs objects" = "catia fruit streams_xattr";
+
+            };
+          };
+        };
+
+      }
+
+    ];
 }
- */

@@ -32,10 +32,7 @@
           device = "/dev/disk/by-label/nixos";
           fsType = "ext4";
         };
-        fileSystems."/mnt/nas" = {
-          device = "/dev/disk/by-label/nas";
-          fsType = "ext4";
-        };
+
 
         fileSystems."/boot" = {
           device = "/dev/disk/by-label/boot";
