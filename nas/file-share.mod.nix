@@ -1,13 +1,3 @@
-# make server have static ip
-
-/*
-  mkdir /export and changing ownership:
-  This is a preparatory step on the server to create a common base directory for your NFS exports.
-*/
-
-# backup+share : like document files, and media files
-# share : for things that are temporary and i just want universal access to.
-# backup+sync : password file, git server maybe
 
 {
   insomniac.modules =
@@ -18,13 +8,15 @@
     [
       {
 
+        # IMPORTANT: for some reason shutting down while nautilus is in a folder of the nas, will stall the shutdown for like 2 minutes. Make sure to close Nautilus GUI app before shutdown!
         fileSystems.${nasMountPoint} = {
           device = nasDevice;
           fsType = "ext4";
         };
         fileSystems."/export/share" = {
           device = "${nasMountPoint}/share"; # Treats the directory as a device. Basically creates a portal
-          options = [ "bind" ]; 
+          depends = [ "${nasMountPoint}"];
+          options = [ "bind" ];
         };
 
         services.samba = {
@@ -34,11 +26,11 @@
           settings = {
             global = {
               security = "user"; # Is the default, "With user-level security a client must first "log-on" with a valid username and password"
-              
+
               #"Tell smbd what to do with user login requests that don't match a valid UNIX user in some way."
               # "Bad User - Means user logins with an invalid password are rejected, unless the username does not exist, in which case it is treated as a guest login and mapped into the guest account."
               "map to guest" = "Bad User";
-              
+
               # "This is a username which will be used for access to services which are specified as guest ok"
               "guest account" = "assar";
             };
@@ -60,4 +52,40 @@
       }
 
     ];
+
+  personal.modules = [
+    {
+      fileSystems."/home/assar/mnt/nas" = {
+        device = "//192.168.50.8/share";
+        fsType = "cifs";
+        # If you don't have this options attribute, it'll default to "defaults"
+        # boot options for fstab. Search up fstab mount options you can use
+        options =
+          let
+            # this line prevents hanging on network split? It does not solve system stalling on shutdown
+            automount_opts = "x-systemd.idle-timeout=60,x-systemd.device-timeout=5s,x-systemd.mount-timeout=5s";
+            
+          in
+          [
+
+            #"${automount_opts}"
+            # When x-systemd.automount is used, systemd will enable an "automount unit", also known as a automount trap,
+            # or a mount point (path) where a file system may later be mounted.  
+            # The file system itself is a separate unit (a "mount unit") and will only be mounted if there is a subsequent demand to use that path.
+            # "fstab is turned into systemd-mount units automatically and as root the mounts are performed. So setuid is not required."
+            # For me fstab can mount cifs device as it is running as root, and so only trying to access it with cd will mount it.
+            # But gnome files presumably does not have root access, so it can't mount cifs devices without the setuid bit.
+            #"x-systemd.automount"
+
+            "auto" # until automount if fixed
+            # For cifs
+            "guest" # "don't prompt for a password "
+            "uid=assar" # Which user to own the files. Defaults to root.
+
+            "nofail" # Prevent system from failing if this drive doesn't mount
+            # "x-gvfs-show"
+          ];
+      };
+    }
+  ];
 }

@@ -1,4 +1,4 @@
-/* 
+
 { config, lib, pkgs, ... }:
 let portssd = "/mnt/portssd";
 public = "${portssd}/public";
@@ -71,4 +71,3 @@ in {
     ];
   };
 }
- */
