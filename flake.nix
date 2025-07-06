@@ -21,6 +21,12 @@
     ags_system.inputs.nixpkgs.follows = "nixpkgs";
     ags_system.inputs.ags.follows = "ags";
 
+    lean.url = "github:lenianiva/lean4-nix";
+    lean.inputs.nixpkgs.follows = "nixpkgs";
+
+    nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
+    nix-vscode-extensions.inputs.nixpkgs.follows = "nixpkgs";
+
   };
   outputs =
     {
@@ -170,12 +176,14 @@
       "https://nix-community.cachix.org"
       "https://niri.cachix.org"
       "https://lean4.cachix.org/"
+      "https://cache.garnix.io"
 
     ];
     extra-trusted-public-keys = [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
       "lean4.cachix.org-1:mawtxSxcaiWE24xCXXgh3qnvlTkyU7evRRnGeAhD4Wk="
+      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
     ];
   };
 }

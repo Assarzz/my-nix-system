@@ -1,5 +1,5 @@
 {
-/*   insomniac.modules = [
+  insomniac.modules = [
     (
       { pkgs, ... }:
       let
@@ -57,5 +57,5 @@
         };
       }
     )
-  ]; */
+  ];
 }
