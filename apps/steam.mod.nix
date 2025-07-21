@@ -10,7 +10,7 @@ let
 in
 {
   igniter.modules = [ steam ];
-  #strategist.modules = [steam];
+  strategist.modules = [steam];
   #pioneer.modules = [steam];
 
 }

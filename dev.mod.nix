@@ -4,9 +4,8 @@
       { pkgs, ... }:
       {
         environment.systemPackages = with pkgs; [
-          lean4
-          cargo
-          rustc
+          elan
+          rustup
           nixfmt-rfc-style # formatter for nix
         ];
         
