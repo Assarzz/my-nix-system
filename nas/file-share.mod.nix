@@ -1,5 +1,6 @@
 
 {
+  # Server configuration
   insomniac.modules =
     let
       nasDevice = "/dev/disk/by-label/nas";
@@ -33,10 +34,13 @@
 
               # "This is a username which will be used for access to services which are specified as guest ok"
               "guest account" = "assar";
+
+              #"smb3 unix extensions" = "yes"; # Otherwise: [   11.762263] CIFS: VFS: Server does not support mounting with posix SMB3.11 extensions
             };
 
             share = {
               comment = "Samba share/service called share";
+              "force user" = "assar";  # This user name only gets used once a connection is established. 
               "guest ok" = "yes";
               "read only" = "no"; # "If this parameter is yes, then users of a service may not create or modify files in the service's directory.", indicating that share and service are the same thing.
               path = "/export/share"; # "This parameter specifies a directory to which the user of the service is to be given access. In the case of printable services, this is where print data will spool prior to being submitted to the host for printing."
@@ -53,6 +57,7 @@
 
     ];
 
+  # Client configuration
   personal.modules = [
     {
       fileSystems."/home/assar/mnt/nas" = {
@@ -77,13 +82,16 @@
             # But gnome files presumably does not have root access, so it can't mount cifs devices without the setuid bit.
             #"x-systemd.automount"
 
-            "auto" # until automount if fixed
+            "nofail" # Prevent system from failing if this drive doesn't mount
+            "auto" # until automount is fixed
+            # "x-gvfs-show"
+
             # For cifs
             "guest" # "don't prompt for a password "
-            "uid=assar" # Which user to own the files. Defaults to root.
-
-            "nofail" # Prevent system from failing if this drive doesn't mount
-            # "x-gvfs-show"
+            "uid=assar" # Which user to own the files on the nixos client system. Defaults to root.
+            #"uid=1000"
+            #"gid=100"
+            "rw"
           ];
       };
     }
