@@ -40,11 +40,11 @@
 
             share = {
               comment = "Samba share/service called share";
-              "force user" = "assar";  # This user name only gets used once a connection is established. 
+              "force user" = "assar";  # guest account + guest ok is not enough apparently. Need this otherwise Permission denied when creating files on linux.(either way it works on ipad)
               "guest ok" = "yes";
               "read only" = "no"; # "If this parameter is yes, then users of a service may not create or modify files in the service's directory.", indicating that share and service are the same thing.
-              path = "/export/share"; # "This parameter specifies a directory to which the user of the service is to be given access. In the case of printable services, this is where print data will spool prior to being submitted to the host for printing."
-              "create mask" = "0666"; # For file. Basically guarantees you cant create executable files.
+              path = "/export/share"; # "This parameter specifies a directory to which the user of the service is to be given access."
+              "create mask" = "0666"; # For file. Basically guarantees you cant create executable files. " Any bit not set here will be removed from the modes set on a file when it is created."
               "directory mask" = "0777"; # For directory. Leaves permissions unchanged from created once. Or perhaps it removes the special byte i guess?
               # for ios
               "vfs objects" = "catia fruit streams_xattr";
@@ -89,7 +89,7 @@
             # For cifs
             "guest" # "don't prompt for a password "
             "uid=assar" # Which user to own the files on the nixos client system. Defaults to root.
-            #"uid=1000"
+            #"uid=1000" # Is this correct instead? "assar" works, so don't fix what isn't broken.
             #"gid=100"
             "rw"
           ];
