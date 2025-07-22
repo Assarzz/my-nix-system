@@ -1,5 +1,5 @@
 
-{
+let conf = import ./conf.nix; in {
   # Server configuration
   insomniac.modules =
     let
@@ -10,13 +10,13 @@
       {
 
         # IMPORTANT: for some reason shutting down while nautilus is in a folder of the nas, will stall the shutdown for like 2 minutes. Make sure to close Nautilus GUI app before shutdown!
-        fileSystems.${nasMountPoint} = {
-          device = nasDevice;
+        fileSystems.${conf.nasMountPoint} = {
+          device = conf.nasDevice;
           fsType = "ext4";
         };
-        fileSystems."/export/share" = {
-          device = "${nasMountPoint}/share"; # Treats the directory as a device. Basically creates a portal
-          depends = [ "${nasMountPoint}"];
+        fileSystems.${conf.nasExportSharePath} = {
+          device = "${conf.nasMountPoint}/share"; # Treats the directory as a device. Basically creates a portal
+          depends = [ "${conf.nasMountPoint}"];
           options = [ "bind" ];
         };
 
@@ -43,7 +43,7 @@
               "force user" = "assar";  # guest account + guest ok is not enough apparently. Need this otherwise Permission denied when creating files on linux.(either way it works on ipad)
               "guest ok" = "yes";
               "read only" = "no"; # "If this parameter is yes, then users of a service may not create or modify files in the service's directory.", indicating that share and service are the same thing.
-              path = "/export/share"; # "This parameter specifies a directory to which the user of the service is to be given access."
+              path = "${conf.nasExportSharePath}"; # "This parameter specifies a directory to which the user of the service is to be given access."
               "create mask" = "0666"; # For file. Basically guarantees you cant create executable files. " Any bit not set here will be removed from the modes set on a file when it is created."
               "directory mask" = "0777"; # For directory. Leaves permissions unchanged from created once. Or perhaps it removes the special byte i guess?
               # for ios
@@ -60,7 +60,7 @@
   # Client configuration
   personal.modules = [
     {
-      fileSystems."/home/assar/mnt/nas" = {
+      fileSystems.${conf.nasCifsMountPoint} = {
         device = "//192.168.50.8/share";
         fsType = "cifs";
         # If you don't have this options attribute, it'll default to "defaults"

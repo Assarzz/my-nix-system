@@ -78,12 +78,13 @@
       # but that means surely we cant evaluate params.configs
       params = inputs // {
         configs = raw_configs;
+        lib = nixpkgs.lib;
         machines = {
-          strategist = {};
-          pioneer = {};
-          igniter = {};
-          vm1 = {};
-	  insomniac = {};
+          strategist = { };
+          pioneer = { };
+          igniter = { };
+          vm1 = { };
+          insomniac = { };
         };
         # no parethesis means it looks for these in the outside scope and adds them both to the attrSet. its not calling a function
         inherit merge;
@@ -136,11 +137,8 @@
       # for zipAttrsWith we specify how given the attribute name and a list of all the attribute values that share that name what the attribute value for that name will be in the final attribute set
       # We dont want the result to be [ [mod1 mod2] [mod3 mod4]], we want [mod1 mod2 mod3 mod4]
       # result {personal = {modules = [mod1 mod2 mod3 mod4]; system = "x86_64-linux"; home_modules = [] }; somebody = {...}}
-      raw_configs = builtins.zipAttrsWith (
-        const flat_merge
-      ) all_modules;
+      raw_configs = builtins.zipAttrsWith (const flat_merge) all_modules;
 
-      
       # Change the values from normal attrSets to nixosSystem attrSets.
       # nixosSystem expects {system = ""; modules = [ mod1 mod2 ];}
       configs = builtins.mapAttrs (const (
@@ -152,7 +150,7 @@
             # Modules defined here have special privlages in that they can access inputs without going via specialArgs, it feel like magic.
             # Basically we utalize that config gives access to anything defined in a module.
             # could you not just have done magic.home_modules = config.home_modules; by this same logic??
-            # the usage in relevent module seems to confirm this theory: "_module.args.home_modules = config.home_modules;" 
+            # the usage in relevent module seems to confirm this theory: "_module.args.home_modules = config.home_modules;"
             # Instead of just going directly via "home_modules" that should be provided as an module input.
             # TODO check this out!
             {
@@ -170,7 +168,7 @@
       # we only use one of the nixosConfigurations outputs for any machine like strategist
       nixosConfigurations = builtins.mapAttrs (name: const configs.${name}) params.machines;
     };
-    
+
   nixConfig = {
     extra-substituters = [
       "https://nix-community.cachix.org"
