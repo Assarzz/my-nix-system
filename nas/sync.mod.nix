@@ -48,6 +48,7 @@ in {
 
   strategist.home_modules = [(mkConf "strategist")];
   insomniac.home_modules = [(mkConf "insomniac")];
+  insomniac.modules = [{networking.firewall.allowedTCPPorts = [ 8384 ];}];
   pioneer.home_modules = [(mkConf "pioneer")];
   igniter.home_modules = [(mkConf "igniter")];
 
