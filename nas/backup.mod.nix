@@ -33,7 +33,7 @@
         systemd.services."daily-backup" = {
           script = ''
             set -eu
-            ${do-backup}/bin/do-backup"
+            "${do-backup}/bin/do-backup"
           '';
           serviceConfig = {
             Type = "oneshot";
