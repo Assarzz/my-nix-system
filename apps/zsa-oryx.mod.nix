@@ -1,5 +1,5 @@
 {
-  universal.modules = [
+  personal.modules = [
     {
       # Extra udev rule to flash zsa keyboard with oryx
       services.udev.extraRules = ''

@@ -1,21 +1,30 @@
-# I count an app as something that is used by itself, not as a dependency, occasionally.
+# I count an app as something that is used by itself occasionally, not dependencies.
 {ags, ...}:{
   universal.modules = [
     (
       { pkgs, ... }:
       {
         environment.systemPackages = with pkgs; [
-          evince
-          calibre
-          keepassxc
+          wget
           dua
           glances
+        ];
+      }
+    )
+  ];
+    personal.modules = [
+    (
+      { pkgs, ... }:
+      {
+        environment.systemPackages = with pkgs; [
+          calibre
+          keepassxc
           element-desktop
           pavucontrol
           chromium
-          wget
           anki
           ags.packages.x86_64-linux.ags # to get access to the ags cli in the PATH
+          masterpdfeditor
         ];
       }
     )
@@ -33,21 +42,6 @@
         ssh = {
           enable = true;
         };
-        firefox.enable = true;
-        vscode = {
-          enable = true;
-          extensions = with pkgs.vscode-extensions; [
-            rust-lang.rust-analyzer
-            jnoortheen.nix-ide
-            sumneko.lua
-            # default jedi was garbage
-            ms-python.vscode-pylance
-          ];
-        };
-
-        alacritty.enable = true;
-        fuzzel.enable = true;
-
       };
     })
 
@@ -75,5 +69,15 @@
         };
       };
     }
+  ];
+
+  personal.home_modules = [
+    ({pkgs, ...}:{
+      programs = {
+        firefox.enable = true;
+        alacritty.enable = true;
+        fuzzel.enable = true;
+      };
+    })
   ];
 }

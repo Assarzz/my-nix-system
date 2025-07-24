@@ -5,10 +5,9 @@
       {
         environment.systemPackages = with pkgs; [
           elan
-          rustup
+          gcc
           nixfmt-rfc-style # formatter for nix
         ];
-        
       }
     )
   ];

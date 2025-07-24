@@ -1,5 +1,5 @@
 {
-/*   insomniac.modules = [
+  insomniac.modules = [
     (
       { pkgs, ... }:
       let
@@ -37,7 +37,11 @@
 
       in
       {
-        systemd.timers."daily-backup" = {
+
+        environment.systemPackages = [
+          do-backup
+        ];
+/*         systemd.timers."daily-backup" = {
           wantedBy = [ "timers.target" ];
           timerConfig = {
             OnCalendar = "daily";
@@ -54,8 +58,8 @@
             Type = "oneshot";
             User = "root";
           };
-        };
+        }; */
       }
     )
-  ]; */
+  ];
 }
