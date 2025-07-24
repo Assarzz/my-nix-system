@@ -17,4 +17,6 @@
 
   nasCifsMountPoint = "/home/assar/mnt/nas";
 
+  backupMountPoint = "/mnt/backup"
+
 }

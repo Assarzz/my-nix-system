@@ -1,64 +1,47 @@
+let
+  conf = import ./conf.nix;
+in
 {
   insomniac.modules = [
     (
       { pkgs, ... }:
       let
-        mountPoint = "/mnt/backup";
-        repoName = "bokuborgbackup";
-        device = "/dev/disk/by-label/backup";
-        whatToBackup = "";
-        do-backup = pkgs.writeShellApplication {
-          name = "do-backup";
-          runtimeInputs = with pkgs; [
-            borgbackup
-            hdparm
-          ];
-          runtimeEnv = {
-            BORG_KEY_FILE = "/root/.config/borg/keys/${repoName}";
-            BORG_PASSPHRASE = "akf481mvn1xlzle074hevmyVUwdvQKX2343968dhREUIKNMCetb643gg6v84v22gafvGUITNHVF";
-            BORG_REPO = "${mountPoint}/${repoName}";
-          };
-          text = ''
-            set -euo pipefail # exit immediately on error, unset variable, or error if any command in a pipeline fails
-
-            echo "mounting and spinning up drive"
-            mount --mkdir ${device} ${mountPoint}
-
-            echo "doing borg backup"
-            DATE=$(date --iso-8601)
-            borg create ::$DATE ${whatToBackup}
-
-            echo "unmounting and spinning down drive"
-            umount ${mountPoint}
-            hdparm -Y ${device}
-
-          '';
-        };
-
+        do-backup = import ./do-backup.nix pkgs;
       in
       {
+        fileSystems.${conf.backupMountPoint} = {
+          device = conf.nasDevice;
+          fsType = "ext4";
+          options =
+            [
+              "nofail" # Prevent system from failing if this drive doesn't mount
+              "user"
+            ];
+        };
 
         environment.systemPackages = [
           do-backup
         ];
-/*         systemd.timers."daily-backup" = {
-          wantedBy = [ "timers.target" ];
-          timerConfig = {
-            OnCalendar = "daily";
-            Persistent = true;
-          };
-        };
+        /*
+          systemd.timers."daily-backup" = {
+                 wantedBy = [ "timers.target" ];
+                 timerConfig = {
+                   OnCalendar = "daily";
+                   Persistent = true;
+                 };
+               };
 
-        systemd.services."daily-backup" = {
-          script = ''
-            set -eu
-            ${do-backup}/bin/do-backup"
-          '';
-          serviceConfig = {
-            Type = "oneshot";
-            User = "root";
-          };
-        }; */
+               systemd.services."daily-backup" = {
+                 script = ''
+                   set -eu
+                   ${do-backup}/bin/do-backup"
+                 '';
+                 serviceConfig = {
+                   Type = "oneshot";
+                   User = "root";
+                 };
+               };
+        */
       }
     )
   ];
