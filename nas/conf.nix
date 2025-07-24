@@ -1,7 +1,7 @@
 # This is a centralized way to provide all the my-system specific option values, that:
 # I have set imperatively, unique to my system or used multiple times.
 # If somebody wants to use my system they will have to change these
-{
+rec{
   syncthingDeviceIds = {
     strategist = "YZRLEMP-ANN4RMR-DYKDALY-LDWZU5J-SK7TPV6-WBSNZXS-UKDFJEY-AFDXWAT";
     igniter = "7XU7UBV-ZSRGC6E-EM4RED5-JBT2G6A-NWR6SC7-SOU7VHW-HOWSLDH-7IIQMAL";
@@ -17,6 +17,12 @@
 
   nasCifsMountPoint = "/home/assar/mnt/nas";
 
-  backupMountPoint = "/mnt/backup"
+  backupDevice = "/dev/disk/by-label/backup";
+  backupMountPoint = "/mnt/backup";
+  borgRepoName = "bokuborgbackup";
+
+  # Add directories that should be backed up  
+  whatToBackup = [ "/export/share/backup" "/export/share/sync/backup" "/export/share/sync/General" ];
+  
 
 }

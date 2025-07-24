@@ -1,9 +1,6 @@
 pkgs:
 let
-  mountPoint = "/mnt/backup";
-  repoName = "bokuborgbackup";
-  device = "/dev/disk/by-label/backup";
-  whatToBackup = "";
+  conf = import ./conf.nix;
   do-backup = pkgs.writeShellApplication {
     name = "do-backup";
     runtimeInputs = with pkgs; [
@@ -11,25 +8,25 @@ let
       hdparm
     ];
     runtimeEnv = {
-      BORG_KEY_FILE = "/root/.config/borg/keys/${repoName}";
+      # Just hack into my machine and you have access to all my precious ebooks!
       BORG_PASSPHRASE = "akf481mvn1xlzle074hevmyVUwdvQKX2343968dhREUIKNMCetb643gg6v84v22gafvGUITNHVF";
-      BORG_REPO = "${mountPoint}/${repoName}";
     };
     text = ''
       set -euo pipefail # exit immediately on error, unset variable, or error if any command in a pipeline fails
 
       echo "mounting and spinning up drive"
-      mount --mkdir ${device} ${mountPoint}
+      mount ${conf.backupMountPoint}
 
       echo "doing borg backup"
       DATE=$(date --iso-8601)
-      borg create ::$DATE ${whatToBackup}
+      borg create "${conf.backupMountPoint}/${conf.borgRepoName}::$DATE" ${builtins.concatStringsSep " " conf.whatToBackup}
 
       echo "unmounting and spinning down drive"
-      umount ${mountPoint}
-      hdparm -Y ${device}
+      umount ${conf.backupMountPoint}
+      hdparm -Y ${conf.backupDevice}
 
     '';
   };
 
-in do-backup
+in
+do-backup
