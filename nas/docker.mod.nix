@@ -12,7 +12,7 @@
         };
       };
 
-      config.virtualisation.oci-containers = {
+      virtualisation.oci-containers = {
         backend = "docker";
         containers = {
           hackagecompare = {
