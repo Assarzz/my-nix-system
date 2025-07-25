@@ -9,8 +9,8 @@
       networking.hosts = {
         #"127.0.0.1" = [ "foo.bar.baz" ];
         "192.168.50.8" = [
-          "jellyfin.local"
-          "reader.local"
+          "jellyfin.an"
+          "reader.an"
         ];
       };
 
@@ -33,7 +33,7 @@
         recommendedProxySettings = true;
         recommendedTlsSettings = true;
         # other Nginx options
-        virtualHosts."jellyfin.local" = {
+        virtualHosts."jellyfin.an" = {
           enableACME = false;
           forceSSL = false;
           locations."/" = {
@@ -48,7 +48,7 @@
           };
         };
 
-        virtualHosts."reader.local" = {
+        virtualHosts."reader.an" = {
           enableACME = false;
           forceSSL = false;
           locations."/" = {
