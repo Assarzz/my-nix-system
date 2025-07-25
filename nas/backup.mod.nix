@@ -21,12 +21,14 @@
 
         environment.systemPackages = [
           do-backup
+          borgbackup
         ];
         systemd.timers."daily-backup" = {
           wantedBy = [ "timers.target" ];
+          # The following example starts once a day (at 12:00am). When activated, it triggers the service immediately if it missed the last start time (option Persistent=true), for example due to the system being powered off. 
           timerConfig = {
             OnCalendar = "daily";
-            Persistent = true;
+            Persistent = true; 
           };
         };
 
