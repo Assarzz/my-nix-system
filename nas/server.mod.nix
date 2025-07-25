@@ -4,6 +4,8 @@
     # dns server
     {
       # these hostnames return these ip addresses by the dns server.
+      networking.firewall.allowedTCPPorts = [ 53 ];
+      networking.firewall.allowedUDPPorts = [ 53 ];
       networking.hosts = {
         #"127.0.0.1" = [ "foo.bar.baz" ];
         "192.168.50.8" = [
@@ -32,8 +34,8 @@
         recommendedTlsSettings = true;
         # other Nginx options
         virtualHosts."jellyfin.local" = {
-          enableACME = true;
-          forceSSL = true;
+          enableACME = false;
+          forceSSL = false;
           locations."/" = {
             proxyPass = "http://127.0.0.1:8096";
             proxyWebsockets = true; # needed if you need to use WebSocket

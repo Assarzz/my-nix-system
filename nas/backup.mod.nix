@@ -21,7 +21,7 @@
 
         environment.systemPackages = [
           do-backup
-          borgbackup
+          pkgs.borgbackup
         ];
         systemd.timers."daily-backup" = {
           wantedBy = [ "timers.target" ];
