@@ -1,8 +1,7 @@
-
 {
   universal.modules = [
 
-/*     {
+    {
       virtualisation.docker = {
         # Disabling the system wide Docker daemon.
         enable = false;
@@ -12,12 +11,10 @@
           setSocketVariable = true;
         };
       };
-    } */
-/*     (
-      { config, pkgs, ... }:
 
-      {
-        config.virtualisation.oci-containers.containers = {
+      config.virtualisation.oci-containers = {
+        backend = "docker";
+        containers = {
           hackagecompare = {
             image = "chrissound/hackagecomparestats-webserver:latest";
             ports = [ "127.0.0.1:3010:3010" ];
@@ -30,7 +27,9 @@
             ];
           };
         };
-      }
-    ) */
+      };
+
+    }
+
   ];
 }
