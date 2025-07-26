@@ -1,5 +1,5 @@
 # This is a centralized way to provide all the my-system specific option values, that:
-# I have set imperatively, unique to my system or used multiple times.
+# I have set imperatively, are unique to my system or used multiple times.
 # If somebody wants to use my system they will have to change these
 rec{
   syncthingDeviceIds = {
@@ -21,7 +21,7 @@ rec{
   backupMountPoint = "/mnt/backup";
   borgRepoName = "bokuborgbackup";
 
-  # Add directories that should be backed up  
+  # Add directories that should be backed up here.   
   whatToBackup = [ "/export/share/backup" "/export/share/sync/backup" "/export/share/sync/General" ];
   
 

@@ -4,8 +4,6 @@
       { pkgs, ... }:
       let
         conf = import ./conf.nix;
-
-        # borg list <backupMountPoint>/bokuborgbackup::2025-07-24 to look at backup content
         do-backup = import ./do-backup.nix pkgs;
       in
       {
@@ -21,17 +19,18 @@
 
         environment.systemPackages = [
           do-backup
-          pkgs.borgbackup
+          pkgs.borgbackup # sudo borg list bokuborgbackup::2025-07-24 to look at backup content
         ];
         systemd.timers."daily-backup" = {
           wantedBy = [ "timers.target" ];
-          # The following example starts once a day (at 12:00am). When activated, it triggers the service immediately if it missed the last start time (option Persistent=true), for example due to the system being powered off. 
+          # "The following example starts once a day (at 12:00am). When activated, it triggers the service immediately if it missed the last start time (option Persistent=true), for example due to the system being powered off."
           timerConfig = {
             OnCalendar = "daily";
             Persistent = true; 
           };
         };
 
+        # journalctl --unit daily-backup is useful for debug
         systemd.services."daily-backup" = {
           script = ''
             set -eu

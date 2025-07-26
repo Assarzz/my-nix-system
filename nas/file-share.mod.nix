@@ -63,8 +63,7 @@ let conf = import ./conf.nix; in {
       fileSystems.${conf.nasCifsMountPoint} = {
         device = "//192.168.50.8/share";
         fsType = "cifs";
-        # If you don't have this options attribute, it'll default to "defaults"
-        # boot options for fstab. Search up fstab mount options you can use
+        # Boot options for fstab.
         options =
           let
             # this line prevents hanging on network split? It does not solve system stalling on shutdown
