@@ -49,7 +49,7 @@
 
               services.qbittorrent = {
                 enable = true;
-                (inherit port)
+                inherit port;
               };
 
               networking = {

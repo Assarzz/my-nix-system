@@ -3,7 +3,7 @@
 # Do 'ls /sys/class/net' and 'ip link' to see info on network interfaces.
 {
   universal.modules = [
-    {
+    ({lib, ...}: {
       networking.nftables.enable = true; # to manage firewall. It's newer than iptables
 
       # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
@@ -13,7 +13,7 @@
       networking.useDHCP = lib.mkDefault true;
       # networking.interfaces.enp6s0.useDHCP = lib.mkDefault true;
 
-    }
+    })
   ];
 
   igniter.modules = [ { networking.hostName = "igniter"; } ];

@@ -49,7 +49,7 @@
               domains = {
                 "jellyfin.an" = "8096"; # default jellyfin port
                 "reader.an" = "8081";
-                "qbittorrent.an" = "8080";
+                
               };
             in
             (builtins.mapAttrs (_: port: {
