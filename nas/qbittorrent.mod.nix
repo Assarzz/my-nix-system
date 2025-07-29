@@ -1,7 +1,7 @@
 {
   insomniac.modules =
     let
-      port = "8080";
+      port = 8080;
     in
     [
 
@@ -11,7 +11,7 @@
           enableACME = false;
           forceSSL = false;
           locations."/" = {
-            proxyPass = "http://192.168.100.11:${port}";
+            proxyPass = "http://192.168.100.11:${builtins.toString port}";
             proxyWebsockets = true; # needed if you need to use WebSocket
             extraConfig =
               # required when the target is also TLS server with multiple hosts
@@ -51,7 +51,7 @@
                 enable = true;
                 inherit port;
               };
-              modules = [ ./qbittorrent-options.nix ];
+              imports = [ ./qbittorrent-options.nix ];
               networking = {
                 firewall.allowedTCPPorts = [ port ];
 
