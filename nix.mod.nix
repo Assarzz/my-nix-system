@@ -10,4 +10,11 @@
 
     }
   ];
+
+
+  # I didn't know where to put this, its kinda related to nix itself.
+  igniter.system = "x86_64-linux";
+  pioneer.system = "x86_64-linux";
+  strategist.system = "x86_64-linux";
+  insomniac.system = "x86_64-linux";
 }

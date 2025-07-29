@@ -21,15 +21,4 @@
     })
   ];
 
-  igniter.modules = [{networking.hostName = "igniter";}];
-  pioneer.modules = [{networking.hostName = "pioneer";}];
-  strategist.modules = [{networking.hostName = "strategist";}];
-  insomniac.modules = [{networking.hostName = "insomniac";}];
-
-  igniter.system = "x86_64-linux";
-  pioneer.system = "x86_64-linux";
-  strategist.system = "x86_64-linux";
-  insomniac.system = "x86_64-linux";
-
-
 }

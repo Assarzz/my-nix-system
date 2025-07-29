@@ -31,42 +31,45 @@
     }
 
     # nginx server
-    {
-      # A benefit of using a reverse proxy is that i only need to is expose these ports on the firewall for all server services using nginx.
-      networking.firewall.allowedTCPPorts = [
-        80
-        443
-      ];
-      services.nginx = {
-        enable = true;
-        recommendedProxySettings = true;
-        recommendedTlsSettings = true;
-        # other Nginx options
-        virtualHosts =
-          let
-            domains = {
-              "jellyfin.an" = "8096"; # default jellyfin port
-              "reader.an" = "8081";
-              "qbittorrent.an" = "8080";
-            };
-          in
-          builtins.mapAttrs (_: port: {
-            enableACME = false;
-            forceSSL = false;
-            locations."/" = {
-              # If you include extra after the domain name, you can add extra functionality. "/" is a catch all.
-              proxyPass = "http://127.0.0.1:${port}";
-              proxyWebsockets = true; # needed if you need to use WebSocket
-              extraConfig =
-                # required when the target is also TLS server with multiple hosts
-                "proxy_ssl_server_name on;"
-                +
-                  # required when the server wants to use HTTP Authentication
-                  "proxy_pass_header Authorization;";
-            };
-          }) domains;
-      };
-    }
+    (
+      { lib, ... }:
+      {
+        # A benefit of using a reverse proxy is that i only need to is expose these ports on the firewall for all server services using nginx.
+        networking.firewall.allowedTCPPorts = [
+          80
+          443
+        ];
+        services.nginx = {
+          enable = true;
+          recommendedProxySettings = true;
+          recommendedTlsSettings = true;
+          # other Nginx options
+          virtualHosts =
+            let
+              domains = {
+                "jellyfin.an" = "8096"; # default jellyfin port
+                "reader.an" = "8081";
+                "qbittorrent.an" = "8080";
+              };
+            in
+            (builtins.mapAttrs (_: port: {
+              enableACME = false;
+              forceSSL = false;
+              locations."/" = {
+                # If you include extra after the domain name, you can add extra functionality. "/" is a catch all.
+                proxyPass = "http://127.0.0.1:${port}";
+                proxyWebsockets = true; # needed if you need to use WebSocket
+                extraConfig =
+                  # required when the target is also TLS server with multiple hosts
+                  "proxy_ssl_server_name on;"
+                  +
+                    # required when the server wants to use HTTP Authentication
+                    "proxy_pass_header Authorization;";
+              };
+            }) domains);
+        };
+      }
+    )
 
     # jellyfin server
     (
