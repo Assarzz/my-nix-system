@@ -1,4 +1,9 @@
 # Qbittorrent option setup. Code from: https://github.com/pceiley/nix-config/blob/3854c687d951ee3fe48be46ff15e8e094dd8e89f/hosts/common/modules/qbittorrent.nix
+# When having this config in the root config of the container, I got errors because I mixed the two systems described as: 
+/* "A simple set of configuration values (e.g., services.openssh.enable = true;).
+A structure containing options (to define new settings) and config (to apply settings)." */
+# Fixed it by importing this separate module through imports option.
+
 { config, lib, pkgs, ... }:
 
 with lib;

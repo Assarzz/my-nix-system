@@ -4,9 +4,7 @@
       port = 8080;
     in
     [
-
       {
-
         services.nginx.virtualHosts."qbittorrent.an" = {
           enableACME = false;
           forceSSL = false;
@@ -23,7 +21,7 @@
         };
         networking.nat = {
           enable = true;
-          internalInterfaces = [ "ve-+" ];
+          internalInterfaces = [ "ve-+" ]; # This is a wildcard that tells the NAT system: "Watch for traffic coming from any interface that starts with ve-."
           externalInterface = "ens3";
           # Lazy IPv6 connectivity for the container
           enableIPv6 = true;
@@ -33,7 +31,7 @@
           autoStart = true; # Starts the container automatically when the host boots up.
           privateNetwork = true; # Creates a separate network namespace for the container, ensuring network isolation.
 
-          # ip address of the virtual network
+          # ip address of the virtual
           hostAddress = "192.168.100.10";
           localAddress = "192.168.100.11";
           hostAddress6 = "fc00::1";
