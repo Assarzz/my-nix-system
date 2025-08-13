@@ -25,7 +25,9 @@
 
 
               pkgs.vscode-extensions.streetsidesoftware.code-spell-checker
+              
               pkgs.vscode-extensions.rust-lang.rust-analyzer
+              pkgs.nix-vscode-extensions.vscode-marketplace.tamasfe.even-better-toml
               pkgs.vscode-extensions.sumneko.lua
               # default jedi was garbage
               pkgs.vscode-extensions.ms-python.vscode-pylance
