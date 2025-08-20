@@ -5,7 +5,7 @@
     {
       nixpkgs.overlays = [ nix-vscode-extensions.overlays.default ];
       # now how do i get access to them?
-      
+
     }
   ];
   personal.home_modules = [
@@ -21,11 +21,10 @@
 
               pkgs.nix-vscode-extensions.vscode-marketplace.leanprover.lean4
 
+              pkgs.vscode-extensions.streetsidesoftware.code-spell-checker
+
               pkgs.vscode-extensions.jnoortheen.nix-ide
 
-
-              pkgs.vscode-extensions.streetsidesoftware.code-spell-checker
-              
               pkgs.vscode-extensions.rust-lang.rust-analyzer
               pkgs.nix-vscode-extensions.vscode-marketplace.tamasfe.even-better-toml
               pkgs.vscode-extensions.sumneko.lua

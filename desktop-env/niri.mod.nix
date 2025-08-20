@@ -99,6 +99,11 @@
             "Mod+Shift+E".action = quit;
           };
           # spawn-at-startup = [];
+
+          hotkey-overlay = {
+            skip-at-startup = true;
+            hide-not-bound = true;
+          };
         };
       }
     )

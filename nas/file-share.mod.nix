@@ -1,5 +1,7 @@
-
-let conf = import ./conf.nix; in {
+let
+  conf = import ./conf.nix;
+in
+{
   # Server configuration
   insomniac.modules =
     let
@@ -16,7 +18,7 @@ let conf = import ./conf.nix; in {
         };
         fileSystems.${conf.nasExportSharePath} = {
           device = "${conf.nasMountPoint}/share"; # Treats the directory as a device. Basically creates a portal
-          depends = [ "${conf.nasMountPoint}"];
+          depends = [ "${conf.nasMountPoint}" ];
           options = [ "bind" ];
         };
 
@@ -40,7 +42,7 @@ let conf = import ./conf.nix; in {
 
             share = {
               comment = "Samba share/service called share";
-              "force user" = "assar";  # guest account + guest ok is not enough apparently. Need this otherwise Permission denied when creating files on linux.(either way it works on ipad)
+              "force user" = "assar"; # guest account + guest ok is not enough apparently. Need this otherwise Permission denied when creating files on linux.(either way it works on ipad)
               "guest ok" = "yes";
               "read only" = "no"; # "If this parameter is yes, then users of a service may not create or modify files in the service's directory.", indicating that share and service are the same thing.
               path = "${conf.nasExportSharePath}"; # "This parameter specifies a directory to which the user of the service is to be given access."
@@ -59,40 +61,40 @@ let conf = import ./conf.nix; in {
 
   # Client configuration
   personal.modules = [
-    {
-      fileSystems.${conf.nasCifsMountPoint} = {
-        device = "//192.168.50.8/share";
-        fsType = "cifs";
-        # Boot options for fstab.
-        options =
-          let
-            # this line prevents hanging on network split? It does not solve system stalling on shutdown
-            automount_opts = "x-systemd.idle-timeout=60,x-systemd.device-timeout=5s,x-systemd.mount-timeout=5s";
-            
-          in
-          [
+    (
+      { pkgs, ... }:
+      {
+        # For mount.cifs, required unless domain name resolution is not needed.
+        environment.systemPackages = [ pkgs.cifs-utils ]; # this line is needed otherwise "Error: Failed to open unit file /nix/store/w...5/etc/systemd/system/home-assar-mnt-nas.mount"
+        fileSystems.${conf.nasCifsMountPoint} = {
+          device = "//192.168.50.8/share";
+          fsType = "cifs";
+          # Boot options for fstab.
+          options =
+            let
+            in
+            [
+              # When x-systemd.automount is used, systemd will enable an "automount unit", also known as a automount trap,
+              # or a mount point (path) where a file system may later be mounted.
+              # The file system itself is a separate unit (a "mount unit") and will only be mounted if there is a subsequent demand to use that path.
+              # "fstab is turned into systemd-mount units automatically and as root the mounts are performed. So setuid is not required."
+              # For me fstab can mount cifs device as it is running as root, and so only trying to access it with cd will mount it.
+              # But gnome files does not trigger the same automount mechanism and tries to mount it iself however it does not have root access, so it can't mount cifs devices without the setuid bit.
+              #"x-systemd.automount"
 
-            #"${automount_opts}"
-            # When x-systemd.automount is used, systemd will enable an "automount unit", also known as a automount trap,
-            # or a mount point (path) where a file system may later be mounted.  
-            # The file system itself is a separate unit (a "mount unit") and will only be mounted if there is a subsequent demand to use that path.
-            # "fstab is turned into systemd-mount units automatically and as root the mounts are performed. So setuid is not required."
-            # For me fstab can mount cifs device as it is running as root, and so only trying to access it with cd will mount it.
-            # But gnome files presumably does not have root access, so it can't mount cifs devices without the setuid bit.
-            #"x-systemd.automount"
+              "nofail" # Prevent system from failing if this drive doesn't mount
+              "auto" # until automount is fixed
+              # "x-gvfs-show"
 
-            "nofail" # Prevent system from failing if this drive doesn't mount
-            "auto" # until automount is fixed
-            # "x-gvfs-show"
-
-            # For cifs
-            "guest" # "don't prompt for a password "
-            "uid=assar" # Which user to own the files on the nixos client system. Defaults to root.
-            #"uid=1000" # Is this correct instead? "assar" works, so don't fix what isn't broken.
-            #"gid=100"
-            "rw"
-          ];
-      };
-    }
+              # For cifs
+              "guest" # "don't prompt for a password "
+              "uid=assar" # Which user to own the files on the nixos client system. Defaults to root.
+              #"uid=1000" # Is this correct instead? "assar" works, so don't fix what isn't broken.
+              #"gid=100"
+              "rw"
+            ];
+        };
+      }
+    )
   ];
 }
