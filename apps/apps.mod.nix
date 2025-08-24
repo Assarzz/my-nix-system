@@ -27,6 +27,7 @@
           masterpdfeditor
           kdePackages.okular
           kdePackages.kdenlive
+          openshot-qt
         ];
       }
     )
