@@ -14,6 +14,7 @@
           "jellyfin.an"
           "reader.an"
           "qbittorrent.an"
+          "forgejo.an"
         ];
       };
 
@@ -31,45 +32,43 @@
     }
 
     # nginx server
-    (
-      { lib, ... }:
-      {
-        # A benefit of using a reverse proxy is that i only need to is expose these ports on the firewall for all server services using nginx.
-        networking.firewall.allowedTCPPorts = [
-          80
-          443
-        ];
-        services.nginx = {
-          enable = true;
-          recommendedProxySettings = true;
-          recommendedTlsSettings = true;
-          # other Nginx options
-          virtualHosts =
-            let
-              domains = {
-                "jellyfin.an" = "8096"; # default jellyfin port
-                "reader.an" = "8081";
+    {
+      # A benefit of using a reverse proxy is that i only need to is expose these ports on the firewall for all server services using nginx.
+      networking.firewall.allowedTCPPorts = [
+        80
+        443
+      ];
+      services.nginx = {
+        enable = true;
+        recommendedProxySettings = true;
+        recommendedTlsSettings = true;
+        # other Nginx options
+        virtualHosts =
+          let
+            domains = {
+              "jellyfin.an" = "8096"; # default jellyfin port
+              "reader.an" = "8081";
+              "forgejo.an" = "8082";
 
-              };
-            in
-            (builtins.mapAttrs (_: port: {
-              enableACME = false;
-              forceSSL = false;
-              locations."/" = {
-                # If you include extra after the domain name, you can add extra functionality. "/" is a catch all.
-                proxyPass = "http://127.0.0.1:${port}";
-                proxyWebsockets = true; # needed if you need to use WebSocket
-                extraConfig =
-                  # required when the target is also TLS server with multiple hosts
-                  "proxy_ssl_server_name on;"
-                  +
-                    # required when the server wants to use HTTP Authentication
-                    "proxy_pass_header Authorization;";
-              };
-            }) domains);
-        };
-      }
-    )
+            };
+          in
+          (builtins.mapAttrs (_: port: {
+            enableACME = false;
+            forceSSL = false;
+            locations."/" = {
+              # If you include extra after the domain name, you can add extra functionality. "/" is a catch all.
+              proxyPass = "http://127.0.0.1:${port}";
+              proxyWebsockets = true; # needed if you need to use WebSocket
+              extraConfig =
+                # required when the target is also TLS server with multiple hosts
+                "proxy_ssl_server_name on;"
+                +
+                  # required when the server wants to use HTTP Authentication
+                  "proxy_pass_header Authorization;";
+            };
+          }) domains);
+      };
+    }
 
     # jellyfin server
     (
@@ -83,11 +82,34 @@
         ];
       }
     )
+
     (
-      { }:
+      { config, ... }:
+      let
+        cfg = config.services.forgejo;
+        srv = cfg.settings.server;
+      in
       {
-        services.gitea = {
+        services.forgejo = {
           enable = true;
+          database.type = "postgres";
+          # Enable support for Git Large File Storage
+          lfs.enable = true;
+          settings = {
+            server = {
+              DOMAIN = "127.0.0.1";
+              # You need to specify this to remove the port from URLs in the web UI.
+              ROOT_URL = "https://${srv.DOMAIN}/";
+              HTTP_PORT = 8082;
+            };
+            # You can temporarily allow registration to create an admin user.
+            service.DISABLE_REGISTRATION = true;
+            # Add support for actions, based on act: https://github.com/nektos/act
+            actions = {
+              ENABLED = true;
+              DEFAULT_ACTIONS_URL = "github";
+            };
+          };
         };
       }
     )
