@@ -49,7 +49,7 @@
               domains = {
                 "jellyfin.an" = "8096"; # default jellyfin port
                 "reader.an" = "8081";
-                
+
               };
             in
             (builtins.mapAttrs (_: port: {
@@ -81,6 +81,14 @@
           pkgs.jellyfin-web
           pkgs.jellyfin-ffmpeg
         ];
+      }
+    )
+    (
+      { }:
+      {
+        services.gitea = {
+          enable = true;
+        };
       }
     )
   ];

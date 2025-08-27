@@ -22,11 +22,10 @@
           element-desktop
           pavucontrol
           chromium
-          anki
+          anki-bin
           ags.packages.x86_64-linux.ags # to get access to the ags cli in the PATH
           masterpdfeditor
           kdePackages.okular
-          kdePackages.kdenlive
           openshot-qt
         ];
       }

@@ -1,6 +1,6 @@
 /*
   Naturally everything in nioxs could be considered as initial setup.
-  But here it about configuration that configures some further initial setup that is only done once.
+  But here its about configuration that configures some further initial setup that is only done once.
 */
 let
   ssh-keyname = "id_ed25519";
@@ -10,7 +10,8 @@ in
     (
       {
         pkgs,
-        lib, ...
+        lib,
+        ...
       }:
       {
         # Create user directories.
@@ -21,7 +22,8 @@ in
           username = "assar";
           homeDirectory = "/home/assar";
           stateVersion = "25.05";
-
+          
+          # Generate ssh key
           activation = {
             generate-ssh-keys = lib.hm.dag.entryAfter [ "writeBoundary" "installPackages" ] ''
               if [ ! -f "$HOME/.ssh/${ssh-keyname}" ]; then
