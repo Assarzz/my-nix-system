@@ -47,9 +47,8 @@
 
               services.qbittorrent = {
                 enable = true;
-                inherit port;
+                webuiPort = port;
               };
-              imports = [ ./qbittorrent-options.nix ];
               networking = {
                 firewall.allowedTCPPorts = [ port ];
 
@@ -62,7 +61,7 @@
 
               services.resolved.enable = true;
 
-              system.stateVersion = "24.11";
+              system.stateVersion = "25.05";
 
             };
         };
