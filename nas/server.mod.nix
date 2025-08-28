@@ -17,7 +17,6 @@ let
     "qbittorrent.an" = "8080";
   };
   excludeFromAutoGen = [
-    "forgejo.an"
     "qbittorrent.an"
   ];
   # dnsmasq option format : -A, --address=/<domain>[/<domain>...]/[<ipaddr>]
@@ -99,7 +98,7 @@ in
     }
     # kavita reader server
     (
-      { lib, pkgs, ... }:
+      { config, lib, pkgs, ... }:
       let
         # pkgs.runCommand : https://ryantm.github.io/nixpkgs/builders/trivial-builders/
         # The result is a path in the /nix/store, e.g., /nix/store/....-kavita-token-key
@@ -113,6 +112,11 @@ in
           dataDir = "${servicesDataDir}/share/kavita";
           settings.Port = lib.toInt dns_domains."kavita.an";
           tokenKeyFile = kavitaTokenFile;
+
+            # Add this block to fix the error
+          systemd.services.kavita.preStart = lib.mkBefore ''
+            mkdir -p ${config.services.kavita.dataDir}/config
+          '';
         };
 
       }
@@ -127,16 +131,6 @@ in
       in
       {
 
-        services.nginx = {
-          virtualHosts.${cfg.settings.server.DOMAIN} = {
-            forceSSL = true;
-            enableACME = true;
-            extraConfig = ''
-              client_max_body_size 512M;
-            '';
-            locations."/".proxyPass = "http://localhost:${toString srv.HTTP_PORT}";
-          };
-        };
         services.forgejo = {
           enable = true;
           stateDir = "${servicesDataDir}/share/forgejo";
