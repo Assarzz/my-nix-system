@@ -1,3 +1,26 @@
+/*
+No Imperative steps needed.
+You can reference data directories from the different services in the backup mod file if you want to back them up. This is not done automatically.
+
+*/
+let
+
+  conf = import ./conf.nix;
+  serverIP = conf.nasIP;
+  servicesDataDir = conf.nasMountPoint;
+
+  # IMPORTANT for some reason ios devices don't work with the .local extension so i use .an (assar network) instead
+  # Domain names hardcoded but ports can be changed here.
+  dns_domains = {
+    "jellyfin.an" = "8096"; # default jellyfin port
+    "kavita.an" = "8081";
+    "forgejo.an" = "8082";
+    "qbittorrent.an" = "8080";
+  };
+  # dnsmasq option format : -A, --address=/<domain>[/<domain>...]/[<ipaddr>]
+  dns_addresses =
+    "/" + builtins.concatStringsSep "/" ((builtins.attrNames dns_domains) ++ [ serverIP ]);
+in
 {
   insomniac.modules = [
 
@@ -6,29 +29,23 @@
       # Clients connect to the dns server over these ports
       networking.firewall.allowedTCPPorts = [ 53 ];
       networking.firewall.allowedUDPPorts = [ 53 ];
-      networking.hosts = {
-        #"127.0.0.1" = [ "foo.bar.baz" ];
 
-        # IMPORTANT for some reason ios devices don't work with the .local extension so i use .an (assar network) instead
-        "192.168.50.8" = [
-          "jellyfin.an"
-          "reader.an"
-          "qbittorrent.an"
-          "forgejo.an"
-        ];
+      services.dnsmasq = {
+        enable = true;
+        alwaysKeepRunning = true;
+
+        settings = {
+          address = dns_addresses;
+          cache-size = 500;
+
+          # I don't know my isp's dns server ip so i just use the classics. My router's backup dns server uses my isp's dns automatically. it can be configured in the WAN settings.
+          server = [
+            "8.8.8.8" # google dns server
+            "1.1.1.1" # cloudflare dns server
+          ];
+        };
       };
 
-      services.dnsmasq.enable = true;
-      services.dnsmasq.alwaysKeepRunning = true;
-
-      # I don't know my isp's dns server ip so i just use the classics. My router's backup dns server uses my isp's dns automatically. it can be configured in the WAN settings.
-      services.dnsmasq.settings.server = [
-        "8.8.8.8" # google dns server
-        "1.1.1.1" # cloudflare dns server
-      ];
-      services.dnsmasq.settings = {
-        cache-size = 500;
-      };
     }
 
     # nginx server
@@ -38,21 +55,16 @@
         80
         443
       ];
+
       services.nginx = {
         enable = true;
         recommendedProxySettings = true;
         recommendedTlsSettings = true;
-        # other Nginx options
-        virtualHosts =
-          let
-            domains = {
-              "jellyfin.an" = "8096"; # default jellyfin port
-              "reader.an" = "8081";
-              "forgejo.an" = "8082";
 
-            };
-          in
-          (builtins.mapAttrs (_: port: {
+        # virtual hosts that dont require any custom configuration.
+        # Explanation for how nginx know what request to send to which port : so even though all the domains get turned into the same ip, after the browser has received the ip from the dns server of the specified domain it THEN creates its finished request to the nginx server in which the originally specified domain is included as the Host header, which presumably nginx maps to virtualHosts.
+        virtualHosts = (
+          builtins.mapAttrs (_: port: {
             enableACME = false;
             forceSSL = false;
             locations."/" = {
@@ -66,44 +78,66 @@
                   # required when the server wants to use HTTP Authentication
                   "proxy_pass_header Authorization;";
             };
-          }) domains);
+          }) dns_domains
+        );
       };
     }
 
     # jellyfin server
+    {
+      services.jellyfin = {
+        enable = true;
+        dataDir = "${servicesDataDir}/share/jellyfin";
+      };
+
+    }
+    # kavita reader server
     (
-      { pkgs, ... }:
+      { lib, ... }:
       {
-        services.jellyfin.enable = true;
-        environment.systemPackages = [
-          pkgs.jellyfin
-          pkgs.jellyfin-web
-          pkgs.jellyfin-ffmpeg
-        ];
+        services.kavita = {
+          enable = true;
+          dataDir = "${servicesDataDir}/share/kavita";
+          Port = lib.toInt dns_domains."kavita.an";
+        };
+
       }
     )
 
+    # forgejo software forge server
     (
-      { config, ... }:
+      { lib, config, ... }:
       let
         cfg = config.services.forgejo;
         srv = cfg.settings.server;
       in
       {
+
+        services.nginx = {
+          virtualHosts.${cfg.settings.server.DOMAIN} = {
+            forceSSL = true;
+            enableACME = true;
+            extraConfig = ''
+              client_max_body_size 512M;
+            '';
+            locations."/".proxyPass = "http://localhost:${toString srv.HTTP_PORT}";
+          };
+        };
         services.forgejo = {
           enable = true;
+          stateDir = "${servicesDataDir}/share/forgejo";
           database.type = "postgres";
           # Enable support for Git Large File Storage
           lfs.enable = true;
           settings = {
             server = {
-              DOMAIN = "127.0.0.1";
+              DOMAIN = "forgejo.an"; # This should by all means be allowed to be localhost since i am using a reverse proxy, however for some reason the ssh/http link for cloning the repo uses this specified domain options which means that it must be reachable from a client so forgejo.an.
               # You need to specify this to remove the port from URLs in the web UI.
               ROOT_URL = "https://${srv.DOMAIN}/";
-              HTTP_PORT = 8082;
+              HTTP_PORT = lib.toInt dns_domains."forgejo.an";
             };
             # You can temporarily allow registration to create an admin user.
-            service.DISABLE_REGISTRATION = true;
+            service.DISABLE_REGISTRATION = false;
             # Add support for actions, based on act: https://github.com/nektos/act
             actions = {
               ENABLED = true;
@@ -113,5 +147,68 @@
         };
       }
     )
+
+    {
+        services.nginx.virtualHosts."qbittorrent.an" = {
+          enableACME = false;
+          forceSSL = false;
+          locations."/" = {
+            proxyPass = "http://192.168.100.11:${dns_domains."qbittorrent.an"}";
+            proxyWebsockets = true; # needed if you need to use WebSocket
+            extraConfig =
+              # required when the target is also TLS server with multiple hosts
+              "proxy_ssl_server_name on;"
+              +
+                # required when the server wants to use HTTP Authentication
+                "proxy_pass_header Authorization;";
+          };
+        };
+        networking.nat = {
+          enable = true;
+          internalInterfaces = [ "ve-+" ]; # This is a wildcard that tells the NAT system: "Watch for traffic coming from any interface that starts with ve-."
+          externalInterface = "ens3";
+          # Lazy IPv6 connectivity for the container
+          enableIPv6 = true;
+        };
+
+        containers.qbittorrent = {
+          autoStart = true; # Starts the container automatically when the host boots up.
+          privateNetwork = true; # Creates a separate network namespace for the container, ensuring network isolation.
+
+          # ip address of the virtual
+          hostAddress = "192.168.100.10";
+          localAddress = "192.168.100.11";
+          hostAddress6 = "fc00::1";
+          localAddress6 = "fc00::2";
+          config =
+            {
+              lib,
+              ...
+            }:
+            {
+
+              services.qbittorrent = {
+                enable = true;
+                webuiPort = lib.toInt dns_domains."qbittorrent.an";
+              };
+              networking = {
+                # This inner container must be accessible from the outside.
+                firewall.allowedTCPPorts = [ (lib.toInt dns_domains."qbittorrent.an") ];
+
+                # Use systemd-resolved inside the container
+                # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686
+                # "Gemini: This is an important networking detail. It tells the container not to simply copy the host's DNS settings.
+                # Instead, it runs its own DNS resolver (systemd-resolved) inside the container. This improves isolation and prevents certain network-related bugs."
+                useHostResolvConf = lib.mkForce false;
+              };
+
+              services.resolved.enable = true;
+
+              system.stateVersion = "25.05";
+
+            };
+        };
+      }
+
   ];
 }

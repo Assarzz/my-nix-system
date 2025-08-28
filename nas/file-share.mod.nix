@@ -1,63 +1,67 @@
+/*
+  No Imperative steps needed to use this mod file.
+  However when it comes to creating future folders imperatively on the nas, they will have to be manually added for backup.
+
+  Sets up the nas file system on the nas.
+  Sets up samba file sharing for both client and server.
+  Sets up the cifs file system that automatically mounts the nas on the clients.
+*/
+
 let
   conf = import ./conf.nix;
 in
 {
   # Server configuration
-  insomniac.modules =
-    let
-      nasDevice = "/dev/disk/by-label/nas";
-      nasMountPoint = "/mnt/nas";
-    in
-    [
-      {
+  insomniac.modules = [
+    {
 
-        # IMPORTANT: for some reason shutting down while nautilus is in a folder of the nas, will stall the shutdown for like 2 minutes. Make sure to close Nautilus GUI app before shutdown!
-        fileSystems.${conf.nasMountPoint} = {
-          device = conf.nasDevice;
-          fsType = "ext4";
-        };
-        fileSystems.${conf.nasExportSharePath} = {
-          device = "${conf.nasMountPoint}/share"; # Treats the directory as a device. Basically creates a portal
-          depends = [ "${conf.nasMountPoint}" ];
-          options = [ "bind" ];
-        };
+      # IMPORTANT: for some reason shutting down while nautilus is in a folder of the nas, will stall the shutdown for like 2 minutes. Make sure to close Nautilus GUI app before shutdown!
+      fileSystems.${conf.nasMountPoint} = {
+        device = conf.nasDevice;
+        fsType = "ext4";
+      };
 
-        services.samba = {
-          enable = true;
-          openFirewall = true;
+      # "If set to `"-"` no automatic clean-up is done."
+      systemd.tmpfiles.rules = [
+        "d ${conf.nasMountPoint}/share 0755 assar root -"
+      ];
 
-          settings = {
-            global = {
-              security = "user"; # Is the default, "With user-level security a client must first "log-on" with a valid username and password"
+      services.samba = {
+        enable = true;
+        openFirewall = true;
 
-              #"Tell smbd what to do with user login requests that don't match a valid UNIX user in some way."
-              # "Bad User - Means user logins with an invalid password are rejected, unless the username does not exist, in which case it is treated as a guest login and mapped into the guest account."
-              "map to guest" = "Bad User";
+        settings = {
+          global = {
+            security = "user"; # Is the default, "With user-level security a client must first "log-on" with a valid username and password"
 
-              # "This is a username which will be used for access to services which are specified as guest ok"
-              "guest account" = "assar";
+            #"Tell smbd what to do with user login requests that don't match a valid UNIX user in some way."
+            # "Bad User - Means user logins with an invalid password are rejected, unless the username does not exist, in which case it is treated as a guest login and mapped into the guest account."
+            "map to guest" = "Bad User";
 
-              #"smb3 unix extensions" = "yes"; # Otherwise: [   11.762263] CIFS: VFS: Server does not support mounting with posix SMB3.11 extensions
-            };
+            # "This is a username which will be used for access to services which are specified as guest ok"
+            "guest account" = "assar";
 
-            share = {
-              comment = "Samba share/service called share";
-              "force user" = "assar"; # guest account + guest ok is not enough apparently. Need this otherwise Permission denied when creating files on linux.(either way it works on ipad)
-              "guest ok" = "yes";
-              "read only" = "no"; # "If this parameter is yes, then users of a service may not create or modify files in the service's directory.", indicating that share and service are the same thing.
-              path = "${conf.nasExportSharePath}"; # "This parameter specifies a directory to which the user of the service is to be given access."
-              "create mask" = "0666"; # For file. Basically guarantees you cant create executable files. " Any bit not set here will be removed from the modes set on a file when it is created."
-              "directory mask" = "0777"; # For directory. Leaves permissions unchanged from created once. Or perhaps it removes the special byte i guess?
-              # for ios
-              "vfs objects" = "catia fruit streams_xattr";
+            #"smb3 unix extensions" = "yes"; # Otherwise: [   11.762263] CIFS: VFS: Server does not support mounting with posix SMB3.11 extensions
+          };
 
-            };
+          share = {
+            comment = "Samba share/service called share";
+            "force user" = "assar"; # guest account + guest ok is not enough apparently. Need this otherwise Permission denied when creating files on linux.(either way it works on ipad)
+            "guest ok" = "yes";
+            "read only" = "no"; # "If this parameter is yes, then users of a service may not create or modify files in the service's directory.", indicating that share and service are the same thing.
+            path = "${conf.nasMountPoint}/share"; # "This parameter specifies a directory to which the user of the service is to be given access."
+            "create mask" = "0666"; # For file. Basically guarantees you cant create executable files. " Any bit not set here will be removed from the modes set on a file when it is created."
+            "directory mask" = "0777"; # For directory. Leaves permissions unchanged from created once. Or perhaps it removes the special byte i guess?
+            # for ios
+            "vfs objects" = "catia fruit streams_xattr";
+
           };
         };
+      };
 
-      }
+    }
 
-    ];
+  ];
 
   # Client configuration
   personal.modules = [
@@ -67,7 +71,7 @@ in
         # For mount.cifs, required unless domain name resolution is not needed.
         environment.systemPackages = [ pkgs.cifs-utils ]; # this line is needed otherwise "Error: Failed to open unit file /nix/store/w...5/etc/systemd/system/home-assar-mnt-nas.mount"
         fileSystems.${conf.nasCifsMountPoint} = {
-          device = "//192.168.50.8/share";
+          device = "//${conf.nasIP}/share";
           fsType = "cifs";
           # Boot options for fstab.
           options =

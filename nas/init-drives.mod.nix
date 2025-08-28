@@ -1,3 +1,4 @@
+# Depends on the ID_WWN of the hard drives used.
 {
   insomniac.modules = [
     ({pkgs, lib, ...}:{

@@ -1,7 +1,9 @@
-# This is a centralized way to provide all the my-system specific option values, that:
-# I have set imperatively, are unique to my system or used multiple times.
-# If somebody wants to use my system they will have to change these
-rec{
+/*
+This is a centralized way to provide all the my-system specific option values that I have set imperatively and are unique to my system.
+If somebody wants to use my system they will have to change these
+*/
+{
+  # All nixos devices will "send a friend request" to these. If both send to each other they automatically become "friends"
   syncthingDeviceIds = {
     strategist = "YZRLEMP-ANN4RMR-DYKDALY-LDWZU5J-SK7TPV6-WBSNZXS-UKDFJEY-AFDXWAT";
     igniter = "7XU7UBV-ZSRGC6E-EM4RED5-JBT2G6A-NWR6SC7-SOU7VHW-HOWSLDH-7IIQMAL";
@@ -11,18 +13,11 @@ rec{
   };
 
   nasDevice = "/dev/disk/by-label/nas";
+  nasIP = "192.168.50.8";
   nasMountPoint = "/mnt/nas";
-  nasExportSharePath = "/export/share";
-  nasExportSyncPath = "/export/share/sync";
-
   nasCifsMountPoint = "/home/assar/mnt/nas";
 
   backupDevice = "/dev/disk/by-label/backup";
   backupMountPoint = "/mnt/backup";
-  borgRepoName = "bokuborgbackup";
-
-  # Add directories that should be backed up here.   
-  whatToBackup = [ "/export/share/backup" "/export/share/sync/backup" "/export/share/sync/General" ];
-  
 
 }
