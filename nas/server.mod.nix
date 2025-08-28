@@ -17,6 +17,7 @@ let
     "forgejo.an" = "8082";
     "qbittorrent.an" = "8080";
   };
+  excludeFromAutoGen = ["forgejo.an" "qbittorrent.an" ];
   # dnsmasq option format : -A, --address=/<domain>[/<domain>...]/[<ipaddr>]
   dns_addresses =
     "/" + builtins.concatStringsSep "/" ((builtins.attrNames dns_domains) ++ [ serverIP ]);
@@ -49,7 +50,7 @@ in
     }
 
     # nginx server
-    {
+    ({lib, ...}:{
       # A benefit of using a reverse proxy is that i only need to is expose these ports on the firewall for all server services using nginx.
       networking.firewall.allowedTCPPorts = [
         80
@@ -78,10 +79,10 @@ in
                   # required when the server wants to use HTTP Authentication
                   "proxy_pass_header Authorization;";
             };
-          }) dns_domains
+          }) lib.filterAttrs (name : _ : !builtins.elem name excludeFromAutoGen ) dns_domains
         );
       };
-    }
+    })
 
     # jellyfin server
     {
