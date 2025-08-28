@@ -83,7 +83,7 @@ in
                     # required when the server wants to use HTTP Authentication
                     "proxy_pass_header Authorization;";
               };
-            }) lib.filterAttrs (name: _: !builtins.elem name excludeFromAutoGen) dns_domains
+            }) (lib.filterAttrs (name: _: !builtins.elem name excludeFromAutoGen) dns_domains)
           );
         };
       }
@@ -112,7 +112,6 @@ in
           enable = true;
           dataDir = "${servicesDataDir}/share/kavita";
           settings.Port = lib.toInt dns_domains."kavita.an";
-          user = "assar";
           tokenKeyFile = kavitaTokenFile;
         };
 
