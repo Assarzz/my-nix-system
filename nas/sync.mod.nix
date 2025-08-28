@@ -19,56 +19,65 @@ let
     let
       # Get all devices EXCEPT the current one.
       otherDevices = lib.filterAttrs (name: _: name != currentDeviceName) conf.syncthingDeviceIds;
-      syncDirPath = if currentDeviceName == "insomniac" then "${conf.nasMountPoint}share/sync" else "~/sync";
+      syncDirPath =
+        if currentDeviceName == "insomniac" then "${conf.nasMountPoint}share/sync" else "~/sync";
     in
     {
-      # Note that the share folder is assumed to exist so we don't add it. TODO is it even necessary to specify each individual path like this or would general be enough?
-      systemd.tmpfiles.rules = [
-        "d ${syncDirPath} 0755 assar root -"
-        "d ${syncDirPath}/general 0755 assar root -"
-      ];
+      home_modules = [
+        {
 
-      services.syncthing = {
+          services.syncthing = {
 
-        guiAddress = if currentDeviceName == "insomniac" then "0.0.0.0:8384" else "127.0.0.1:8384";
-        enable = true;
-        settings = {
-          # 1. DEFINE PEER DEVICES
-          #    This takes the `otherDevices` map and creates an entry for each,
-          #    setting its device ID.
-          devices = lib.mapAttrs (name: id: { inherit id; }) otherDevices;
+            guiAddress = if currentDeviceName == "insomniac" then "0.0.0.0:8384" else "127.0.0.1:8384";
+            enable = true;
+            settings = {
+              # 1. DEFINE PEER DEVICES
+              #    This takes the `otherDevices` map and creates an entry for each,
+              #    setting its device ID.
+              devices = lib.mapAttrs (name: id: { inherit id; }) otherDevices;
 
-          # 2. DEFINE THE SHARED FOLDER
-          #    This creates a folder and shares it with the peer devices.
-          folders = {
-            # The name here ("General") becomes the default path and label.
-            "general" = {
-              # This ID must be IDENTICAL on all devices for the folder to sync.
-              id = "general-shared-folder2";
+              # 2. DEFINE THE SHARED FOLDER
+              #    This creates a folder and shares it with the peer devices.
+              folders = {
+                # The name here ("General") becomes the default path and label.
+                "general" = {
+                  # This ID must be IDENTICAL on all devices for the folder to sync.
+                  id = "general-shared-folder2";
 
-              # The local path to the folder. `~` expands to the user's home.
-              path = "${syncDirPath}/general";
+                  # The local path to the folder. `~` expands to the user's home.
+                  path = "${syncDirPath}/general";
 
-              # The folder label that appears in the Syncthing GUI.
-              label = "general";
+                  # The folder label that appears in the Syncthing GUI.
+                  label = "general";
 
-              #It gets the names of all other devices and shares this folder with them.
-              devices = lib.attrNames otherDevices;
+                  #It gets the names of all other devices and shares this folder with them.
+                  devices = lib.attrNames otherDevices;
 
-              # Is default already. Standard two-way sync. Can also be "sendonly" or "receiveonly".
-              type = "sendreceive";
+                  # Is default already. Standard two-way sync. Can also be "sendonly" or "receiveonly".
+                  type = "sendreceive";
+                };
+              };
             };
           };
-        };
-      };
+        }
+      ];
+      modules = [
+        {
+          # Note that the share folder is assumed to exist so we don't add it. TODO is it even necessary to specify each individual path like this or would general be enough?
+          systemd.tmpfiles.rules = [
+            "d ${syncDirPath} 0755 assar root -"
+            "d ${syncDirPath}/general 0755 assar root -"
+          ];
+          networking.firewall.allowedTCPPorts = if currentDeviceName == "insomniac" then [ 8384 ] else [ ];
+        }
+      ];
     };
 in
 {
 
-  strategist.home_modules = [ (mkConf "strategist") ];
-  insomniac.home_modules = [ (mkConf "insomniac") ];
-  insomniac.modules = [ { networking.firewall.allowedTCPPorts = [ 8384 ]; } ];
-  pioneer.home_modules = [ (mkConf "pioneer") ];
-  igniter.home_modules = [ (mkConf "igniter") ];
+  strategist = mkConf "strategist";
+  insomniac = mkConf "insomniac";
+  pioneer = mkConf "pioneer";
+  igniter = mkConf "igniter";
 
 }

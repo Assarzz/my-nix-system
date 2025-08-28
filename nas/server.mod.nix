@@ -98,7 +98,7 @@ in
         services.kavita = {
           enable = true;
           dataDir = "${servicesDataDir}/share/kavita";
-          Port = lib.toInt dns_domains."kavita.an";
+          settings.Port = lib.toInt dns_domains."kavita.an";
         };
 
       }
