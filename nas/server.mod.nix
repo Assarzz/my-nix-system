@@ -114,10 +114,11 @@ in
           tokenKeyFile = kavitaTokenFile;
 
             # Add this block to fix the error
-          systemd.services.kavita.preStart = lib.mkBefore ''
+         };
+         
+         systemd.services.kavita.preStart = lib.mkBefore ''
             mkdir -p ${config.services.kavita.dataDir}/config
           '';
-        };
 
       }
     )
