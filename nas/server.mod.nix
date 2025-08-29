@@ -15,6 +15,7 @@ let
     "kavita.an" = "8081";
     "forgejo.an" = "8082";
     "qbittorrent.an" = "8080";
+    "audiobookshelf.an" = "8084";
   };
   excludeFromAutoGen = [
     "qbittorrent.an"
@@ -133,6 +134,14 @@ in
         users.users.kavita.extraGroups = [ "samba-media" ];
       }
     )
+
+    ({lib, ...}:{
+      services.audiobookshelf.enable = true;
+      services.audiobookshelf.dataDir = "${servicesDataDir}/audiobookshelf";
+      services.audiobookshelf.user = "audiobookshelf";
+      services.audiobookshelf.group = "audiobookshelf";
+      services.audiobookshelf.port = lib.toInt dns_domains."audiobookshelf.an";
+    })
 
     # forgejo software forge server
     (
