@@ -5,7 +5,6 @@
   Sets up syncthing on all nixos devices and so they connect to each other including to non nixos devices whose device ids have also been added to syncthingDeviceIds.
   Set up a general folder that every device on my network have and is synced in common.
 
-  # NOTE on the second revision of the sync setup we had following name changes: General -> general, and general-shared-folder -> general-shared-folder2.
 */
 
 { lib, ... }:
@@ -41,15 +40,15 @@ let
               #    This creates a folder and shares it with the peer devices.
               folders = {
                 # The name here ("General") becomes the default path and label.
-                "general" = {
+                "general2" = {
                   # This ID must be IDENTICAL on all devices for the folder to sync.
                   id = "general-shared-folder2";
 
                   # The local path to the folder. `~` expands to the user's home.
-                  path = "${syncDirPath}/general";
+                  path = "${syncDirPath}/general2";
 
                   # The folder label that appears in the Syncthing GUI.
-                  label = "general";
+                  label = "general2";
 
                   #It gets the names of all other devices and shares this folder with them.
                   devices = lib.attrNames otherDevices;
