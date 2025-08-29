@@ -21,7 +21,7 @@ let
       otherDevices = lib.filterAttrs (name: _: name != currentDeviceName) conf.syncthingDeviceIds;
       # sync with syncthing should mean that we dont need to include the folder in file share
       syncDirPath =
-        if currentDeviceName == "insomniac" then "${conf.nasMountPoint}syncthing" else "~/syncthing";
+        if currentDeviceName == "insomniac" then "${conf.nasMountPoint}/syncthing" else "~/syncthing";
     in
     {
       home_modules = [
