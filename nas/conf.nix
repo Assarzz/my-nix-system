@@ -15,7 +15,7 @@ If somebody wants to use my system they will have to change these
   nasDevice = "/dev/disk/by-label/nas";
   nasIP = "192.168.50.8";
   nasMountPoint = "/mnt/nas";
-  nasCifsMountPoint = "/home/assar/mnt/nas";
+  nasCifsMountRoot = "/home/assar/mnt";
 
   backupDevice = "/dev/disk/by-label/backup";
   backupMountPoint = "/mnt/backup";

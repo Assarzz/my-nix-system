@@ -59,7 +59,7 @@ in
             #"smb3 unix extensions" = "yes"; # Otherwise: [   11.762263] CIFS: VFS: Server does not support mounting with posix SMB3.11 extensions
           };
 
-          general = {
+          "${samba-general}" = {
             comment = "General samba share";
             "force user" = samba-general; # guest account + guest ok is not enough apparently. Need this otherwise Permission denied when creating files on linux.(either way it works on ipad)
             "guest ok" = "yes";
@@ -71,7 +71,7 @@ in
             "vfs objects" = "catia fruit streams_xattr";
 
           };
-          media = {
+          "${samba-media}" = {
             comment = "Samba share for media";
             "force user" = samba-media; # guest account + guest ok is not enough apparently. Need this otherwise Permission denied when creating files on linux.(either way it works on ipad)
             "guest ok" = "yes";
@@ -94,11 +94,9 @@ in
   personal.modules = [
     (
       { pkgs, ... }:
-      {
-        # For mount.cifs, required unless domain name resolution is not needed.
-        environment.systemPackages = [ pkgs.cifs-utils ]; # this line is needed otherwise "Error: Failed to open unit file /nix/store/w...5/etc/systemd/system/home-assar-mnt-nas.mount"
-        fileSystems.${conf.nasCifsMountPoint} = {
-          device = "//${conf.nasIP}/share";
+      let 
+        mkCifsMount = share : {
+          device = "//${conf.nasIP}/${share}";
           fsType = "cifs";
           # Boot options for fstab.
           options =
@@ -121,10 +119,17 @@ in
               "guest" # "don't prompt for a password "
               "uid=assar" # Which user to own the files on the nixos client system. Defaults to root.
               #"uid=1000" # Is this correct instead? "assar" works, so don't fix what isn't broken.
-              "gid=users"
+              "gid=assar"
               "rw"
             ];
         };
+      in {
+        # For mount.cifs, required unless domain name resolution is not needed.
+        # this line is needed otherwise "Error: Failed to open unit file /nix/store/w...5/etc/systemd/system/home-assar-mnt-nas.mount"
+        environment.systemPackages = [ pkgs.cifs-utils ]; 
+        fileSystems."${conf.nasCifsMountRoot}/${samba-general}" = mkCifsMount samba-general;
+        fileSystems."${conf.nasCifsMountRoot}/${samba-media}" = mkCifsMount samba-media;
+
       }
     )
   ];
