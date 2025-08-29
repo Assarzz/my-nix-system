@@ -16,6 +16,7 @@ let
     "forgejo.an" = "8082";
     "qbittorrent.an" = "8080";
     "audiobookshelf.an" = "8084";
+    "komga.an" = "8085";
   };
   excludeFromAutoGen = [
     "qbittorrent.an"
@@ -138,6 +139,7 @@ in
       }
     )
 
+    # audiobookshelf reader
     (
       { lib, ... }:
       {
@@ -151,6 +153,15 @@ in
         ];
       }
     )
+
+    # komga reader
+    ({lib, ...} : {
+      services.komga.enable = true;
+      services.komga.user = "komga";
+      services.komga.group = "komga";
+      services.komga.settings.server.port = lib.toInt dns_domains."komga.an";
+      services.komga.stateDir = "${servicesDataDir}/komga";
+    })
 
     # forgejo software forge server
     (
