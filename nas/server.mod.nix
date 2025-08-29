@@ -90,17 +90,20 @@ in
     )
 
     # jellyfin server
-    ({config, ...}:{
-      services.jellyfin = {
-        enable = true;
-        dataDir = "${servicesDataDir}/jellyfin";
-        user = "jellyfin";
-        group = "jellyfin";
-      };
-      users.users.jellyfin.extraGroups = [ "samba-media" ];
-      # Jellyfin source code hardcodes the root dataDir to permissions 700, which would mean that no matter what another group would not be able to read files in that directory. However since jellyfin works by having paths to media and not store it itself, it does not matter.
+    (
+      { config, ... }:
+      {
+        services.jellyfin = {
+          enable = true;
+          dataDir = "${servicesDataDir}/jellyfin";
+          user = "jellyfin";
+          group = "jellyfin";
+        };
+        users.users.jellyfin.extraGroups = [ "samba-media" ];
+        # Jellyfin source code hardcodes the root dataDir to permissions 700, which would mean that no matter what another group would not be able to read files in that directory. However since jellyfin works by having paths to media and not store it itself, it does not matter.
 
-    })
+      }
+    )
     # kavita reader server
     (
       {
@@ -135,13 +138,19 @@ in
       }
     )
 
-    ({lib, ...}:{
-      services.audiobookshelf.enable = true;
-      services.audiobookshelf.dataDir = "${servicesDataDir}/audiobookshelf";
-      services.audiobookshelf.user = "audiobookshelf";
-      services.audiobookshelf.group = "audiobookshelf";
-      services.audiobookshelf.port = lib.toInt dns_domains."audiobookshelf.an";
-    })
+    (
+      { lib, ... }:
+      {
+        services.audiobookshelf.enable = true;
+        services.audiobookshelf.dataDir = "${servicesDataDir}/audiobookshelf";
+        services.audiobookshelf.user = "audiobookshelf";
+        services.audiobookshelf.group = "audiobookshelf";
+        services.audiobookshelf.port = lib.toInt dns_domains."audiobookshelf.an";
+        systemd.tmpfiles.rules = [
+          "d ${servicesDataDir}/audiobookshelf 0755 audiobookshelf audiobookshelf -"
+        ];
+      }
+    )
 
     # forgejo software forge server
     (
