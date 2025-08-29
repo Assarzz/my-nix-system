@@ -7,6 +7,7 @@
         isNormalUser = true;
         home = "/home/assar";
         description = "Assar Lannerborn";
+        group = "assar"; # instead of users, assar will be the primary group as is common on other distros
         extraGroups = [
           "wheel"
           "networkmanager"

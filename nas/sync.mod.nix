@@ -19,8 +19,9 @@ let
     let
       # Get all devices EXCEPT the current one.
       otherDevices = lib.filterAttrs (name: _: name != currentDeviceName) conf.syncthingDeviceIds;
+      # sync with syncthing should mean that we dont need to include the folder in file share
       syncDirPath =
-        if currentDeviceName == "insomniac" then "${conf.nasMountPoint}share/sync" else "~/sync";
+        if currentDeviceName == "insomniac" then "${conf.nasMountPoint}syncthing" else "~/syncthing";
     in
     {
       home_modules = [
@@ -65,8 +66,8 @@ let
         {
           # Note that the share folder is assumed to exist so we don't add it. TODO is it even necessary to specify each individual path like this or would general be enough?
           systemd.tmpfiles.rules = [
-            "d ${syncDirPath} 0755 assar root -"
-            "d ${syncDirPath}/general 0755 assar root -"
+            "d ${syncDirPath} 0755 assar assar -"
+            "d ${syncDirPath}/general 0755 assar assar -"
           ];
           networking.firewall.allowedTCPPorts = if currentDeviceName == "insomniac" then [ 8384 ] else [ ];
         }

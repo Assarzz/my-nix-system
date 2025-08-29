@@ -89,16 +89,24 @@ in
     )
 
     # jellyfin server
-    {
+    ({config, ...}:{
       services.jellyfin = {
         enable = true;
-        dataDir = "${servicesDataDir}/share/jellyfin";
+        dataDir = "${servicesDataDir}/jellyfin";
+        user = "jellyfin";
+        group = "jellyfin";
       };
+      # Jellyfin source code hardcodes the root dataDir to permissions 700, which would mean that no matter what another group would not be able to read files in that directory. However since jellyfin works by having paths to media and not store it itself, it does not matter.
 
-    }
+    })
     # kavita reader server
     (
-      { config, lib, pkgs, ... }:
+      {
+        config,
+        lib,
+        pkgs,
+        ...
+      }:
       let
         # pkgs.runCommand : https://ryantm.github.io/nixpkgs/builders/trivial-builders/
         # The result is a path in the /nix/store, e.g., /nix/store/....-kavita-token-key
@@ -109,17 +117,19 @@ in
       {
         services.kavita = {
           enable = true;
-          dataDir = "${servicesDataDir}/share/kavita";
+          dataDir = "${servicesDataDir}/kavita";
           settings.Port = lib.toInt dns_domains."kavita.an";
           tokenKeyFile = kavitaTokenFile;
 
-            # Add this block to fix the error
-         };
-         
-         systemd.services.kavita.preStart = lib.mkBefore ''
-            mkdir -p ${config.services.kavita.dataDir}/config
-          '';
-
+          # Add this block to fix the error
+        };
+        # Without this kavita fails to create this directory and fails with "cannot create regular file '/mnt/nas/share/kavita/config/appsettings.json': No such file or directory"
+        systemd.services.kavita.preStart = lib.mkBefore ''
+          mkdir -p ${config.services.kavita.dataDir}/config
+        '';
+        # Adds kavita user to users smb
+        # This means that kavita will only ever be able to get its media from files with this group.
+        users.users.kavita.extraGroups = [ "smb" ];
       }
     )
 
@@ -134,13 +144,15 @@ in
 
         services.forgejo = {
           enable = true;
-          stateDir = "${servicesDataDir}/share/forgejo";
+          stateDir = "${servicesDataDir}/forgejo";
           database.type = "postgres";
+          user = "forgejo";
+          group = "forgejo";
           # Enable support for Git Large File Storage
           lfs.enable = true;
           settings = {
             server = {
-              DOMAIN = "forgejo.an"; # This should by all means be allowed to be localhost since i am using a reverse proxy, however for some reason the ssh/http link for cloning the repo uses this specified domain options which means that it must be reachable from a client so forgejo.an.
+              DOMAIN = "127.0.0.1"; # This should by all means be allowed to be localhost since i am using a reverse proxy, however for some reason the ssh/http link for cloning the repo uses this specified domain options which means that i will have to modify the cloning path manually.
               # You need to specify this to remove the port from URLs in the web UI.
               ROOT_URL = "https://${srv.DOMAIN}/";
               HTTP_PORT = lib.toInt dns_domains."forgejo.an";
@@ -157,6 +169,7 @@ in
       }
     )
 
+    # qbittorrent server
     {
       services.nginx.virtualHosts."qbittorrent.an" = {
         enableACME = false;
@@ -198,6 +211,8 @@ in
 
             services.qbittorrent = {
               enable = true;
+              user = "qbittorrent";
+              group = "qbittorrent";
               webuiPort = lib.toInt dns_domains."qbittorrent.an";
             };
             networking = {
