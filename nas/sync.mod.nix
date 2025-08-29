@@ -40,15 +40,15 @@ let
               #    This creates a folder and shares it with the peer devices.
               folders = {
                 # The name here ("General") becomes the default path and label.
-                "general2" = {
+                "general3" = {
                   # This ID must be IDENTICAL on all devices for the folder to sync.
-                  id = "general-shared-folder2";
+                  id = "general-shared-folder3";
 
                   # The local path to the folder. `~` expands to the user's home.
-                  path = "${syncDirPath}/general2";
+                  path = "${syncDirPath}/general3";
 
                   # The folder label that appears in the Syncthing GUI.
-                  label = "general2";
+                  label = "general3";
 
                   #It gets the names of all other devices and shares this folder with them.
                   devices = lib.attrNames otherDevices;
