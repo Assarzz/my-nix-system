@@ -96,6 +96,7 @@ in
         user = "jellyfin";
         group = "jellyfin";
       };
+      users.users.jellyfin.extraGroups = [ "samba-media" ];
       # Jellyfin source code hardcodes the root dataDir to permissions 700, which would mean that no matter what another group would not be able to read files in that directory. However since jellyfin works by having paths to media and not store it itself, it does not matter.
 
     })
@@ -127,9 +128,9 @@ in
         systemd.services.kavita.preStart = lib.mkBefore ''
           mkdir -p ${config.services.kavita.dataDir}/config
         '';
-        # Adds kavita user to users smb
+        # Adds kavita user to users samba-media
         # This means that kavita will only ever be able to get its media from files with this group.
-        users.users.kavita.extraGroups = [ "smb" ];
+        users.users.kavita.extraGroups = [ "samba-media" ];
       }
     )
 
