@@ -11,7 +11,7 @@ let
   mnt = conf.nasMountPoint;
 
   # This line here depends on every other mod file to make sure the entries specified actually exists.
-  whatToBackup = [ "${mnt}/share/backup" "${mnt}/share/sync/backup" "${mnt}/share/sync/general" ]; 
+  whatToBackup = [ "${mnt}/samba-general/backup" "${mnt}/samba-media/backup" "${mnt}/syncthing/general3/backup" ]; 
   do-backup = pkgs.writeShellApplication {
     name = "do-backup";
 
@@ -49,7 +49,7 @@ let
       fi
 
       echo "doing borg backup"
-      DATE=$(date --iso-8601)
+      DATE=$(date -Iseconds)
       borg create "${conf.backupMountPoint}/${borgRepoName}::$DATE" ${builtins.concatStringsSep " " whatToBackup}
 
       # NOTE if the previous command fails, for example if a backup has already been done with that name (like if you run the script twice a day), this unmount will not happen because the script terminates midway.
