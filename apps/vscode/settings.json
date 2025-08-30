@@ -1,0 +1,38 @@
+{
+    "files.associations": {
+        "*.nix": "nix"
+    },
+    "explorer.confirmDelete": false,
+    "[typescriptreact]": {},
+    "terminal.integrated.enableMultiLinePasteWarning": "never",
+    "git.confirmSync": false,
+    "nix.enableLanguageServer": true,
+    "nix.serverPath": "nixd",
+    "nix.serverSettings": {
+        "nixd": {
+            "formatting": {
+                "command": [
+                    "nixfmt"
+                ],
+            },
+            "options": {
+                // By default, this entry will be read from `import <nixpkgs> { }`.
+                // You can write arbitrary Nix expressions here, to produce valid "options" declaration result.
+                // Tip: for flake-based configuration, utilize `builtins.getFlake`
+                "nixos": {
+                    "expr": "(builtins.getFlake \"/etc/nixos\").nixosConfigurations.<name>.options",
+                },
+            },
+        }
+    },
+    "rust-analyzer.cargo.allFeatures": true, // Enable all features
+    "rust-analyzer.procMacro": {
+        "enable": true,
+        "ignored": {
+            "leptos-macro": [
+                "view",
+                "component"
+            ]
+        }
+    }
+}
