@@ -56,7 +56,7 @@ in
     (
       { lib, ... }:
       {
-        # A benefit of using a reverse proxy is that i only need to is expose these ports on the firewall for all server services using nginx.
+        # A benefit of using a reverse proxy is that i only need to expose these ports on the firewall because all requests to server services go via nginx, and then over localhost to reach the services.
         networking.firewall.allowedTCPPorts = [
           80
           443
@@ -73,8 +73,9 @@ in
             builtins.mapAttrs (_: port: {
               enableACME = false;
               forceSSL = false;
+
+              # If you include extra after the domain name, you can add extra functionality. "/" is a catch all.
               locations."/" = {
-                # If you include extra after the domain name, you can add extra functionality. "/" is a catch all.
                 proxyPass = "http://127.0.0.1:${port}";
                 proxyWebsockets = true; # needed if you need to use WebSocket
                 extraConfig =
@@ -155,13 +156,16 @@ in
     )
 
     # komga reader
-    ({lib, ...} : {
-      services.komga.enable = true;
-      services.komga.user = "komga";
-      services.komga.group = "komga";
-      services.komga.settings.server.port = lib.toInt dns_domains."komga.an";
-      services.komga.stateDir = "${servicesDataDir}/komga";
-    })
+    (
+      { lib, ... }:
+      {
+        services.komga.enable = true;
+        services.komga.user = "komga";
+        services.komga.group = "komga";
+        services.komga.settings.server.port = lib.toInt dns_domains."komga.an";
+        services.komga.stateDir = "${servicesDataDir}/komga";
+      }
+    )
 
     # forgejo software forge server
     (
@@ -215,21 +219,31 @@ in
               "proxy_pass_header Authorization;";
         };
       };
+      # Makes the computer work like a router. The point is to somehow connect the container interface with ip 192.168.100.10 to the real ip 192.168.50.8
+      # We do this by dedicating a port on the ip 192.168.50.8 to this container ip. So that after a connection to the internet have been established, any traffic coming from the internet with this port, go to the container.
       networking.nat = {
         enable = true;
-        internalInterfaces = [ "ve-+" ]; # This is a wildcard that tells the NAT system: "Watch for traffic coming from any interface that starts with ve-."
-        externalInterface = "ens3";
+
+        # This is a wildcard that tells the NAT system: "Watch for traffic coming from any interface that starts with ve-."
+        # It tells nat that this is the client from a routers perspective
+        internalInterfaces = [ "ve-+" ];
+
+        # This tells nat that this is the interface acting as the router, ie the real one with a real ip address, the only ip that actually have access to the internet.
+        externalInterface = "enp2s0";
         # Lazy IPv6 connectivity for the container
         enableIPv6 = true;
       };
 
+      # Since its in a container its sneaky. Things don't work the way they normally work with systemd, like tmpfiles path being altered to be be under var/lib/nixos-containers and journalctl not working normally.
+      # sudo journalctl -M qbittorrent
       containers.qbittorrent = {
         autoStart = true; # Starts the container automatically when the host boots up.
-        privateNetwork = true; # Creates a separate network namespace for the container, ensuring network isolation.
+        # Creates a separate network namespace for the container, ensuring network isolation. It is responsible for creating the network interface  ve-«container-name»
+        privateNetwork = true;
 
-        # ip address of the virtual
-        hostAddress = "192.168.100.10";
-        localAddress = "192.168.100.11";
+        # ip addresses of the virtual network
+        hostAddress = "192.168.100.10"; # The IPv4 address assigned to the host interface. Ie its visible with `ip a`
+        localAddress = "192.168.100.11"; # The IPv4 address assigned to the interface in the container. Ie its not visible via `ip a` from outside.
         hostAddress6 = "fc00::1";
         localAddress6 = "fc00::2";
         config =
@@ -253,12 +267,52 @@ in
               # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686
               # "Gemini: This is an important networking detail. It tells the container not to simply copy the host's DNS settings.
               # Instead, it runs its own DNS resolver (systemd-resolved) inside the container. This improves isolation and prevents certain network-related bugs."
+              # See https://discourse.nixos.org/t/what-does-mkdefault-do-exactly/9028 for explanation on mkForce
               useHostResolvConf = lib.mkForce false;
             };
 
             services.resolved.enable = true;
 
             system.stateVersion = "25.05";
+
+            networking.firewall = {
+              allowedUDPPorts = [ 51820 ]; # Clients and peers can use the same port, see listenport
+            };
+
+            # Enable WireGuard
+            networking.wireguard.enable = true;
+            networking.wireguard.interfaces = {
+              # "wg0" is the network interface name. You can name the interface arbitrarily.
+              wg0 = {
+                # Determines the IP address and subnet of the client's end of the tunnel interface.
+                # I got it by this, it was found in a script from their wireguard linux tutorial: curl -sSL https://api.mullvad.net/wg -d account="<account-number>" --data-urlencode pubkey="$(wg pubkey <<<"<private-key>")"
+                ips = [ "10.68.117.34/32" "fc00:bbbb:bbbb:bb01::5:7521/128" ];
+                listenPort = 51820; # to match firewall allowedUDPPorts (without this wg uses random port numbers)
+
+                # Path to the private key file.
+                privateKeyFile = "/home/assar/mullvad/mullvad-private-key";
+
+                peers = [
+                  # For a client configuration, one peer entry for the server will suffice.
+
+                  {
+                    # Public key of the server (not a file path).
+                    publicKey = "MkP/Jytkg51/Y/EostONjIN6YaFRpsAYiNKMX27/CAY=";
+
+                    # Forward all the traffic via VPN.
+                    allowedIPs = [ "0.0.0.0/0" ];
+                    # Or forward only particular subnets
+                    #allowedIPs = [ "10.100.0.1" "91.108.12.0/22" ];
+
+                    # Set this to the server IP and port.
+                    endpoint = "185.195.233.76:51820"; # ToDo: route to endpoint not automatically configured https://wiki.archlinux.org/index.php/WireGuard#Loop_routing https://discourse.nixos.org/t/solved-minimal-firewall-setup-for-wireguard-client/7577
+
+                    # Send keepalives every 25 seconds. Important to keep NAT tables alive.
+                    persistentKeepalive = 25;
+                  }
+                ];
+              };
+            };
 
           };
       };
