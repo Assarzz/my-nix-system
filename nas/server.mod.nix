@@ -249,6 +249,7 @@ in
         config =
           {
             lib,
+            config,
             ...
           }:
           {
@@ -270,11 +271,11 @@ in
               # See https://discourse.nixos.org/t/what-does-mkdefault-do-exactly/9028 for explanation on mkForce
               useHostResolvConf = lib.mkForce false;
             };
-
+            
             services.resolved.enable = true;
 
             system.stateVersion = "25.05";
-
+            config.containers.qbittorrent.path = "/nix/var/nix/profiles/per-container/webserver";
             networking.firewall = {
               allowedUDPPorts = [ 51820 ]; # Clients and peers can use the same port, see listenport
             };
@@ -289,8 +290,8 @@ in
                 ips = [ "10.68.117.34/32" "fc00:bbbb:bbbb:bb01::5:7521/128" ];
                 listenPort = 51820; # to match firewall allowedUDPPorts (without this wg uses random port numbers)
 
-                # Path to the private key file.
-                privateKeyFile = "/home/assar/mullvad/mullvad-private-key";
+                # Path to the private key file. Remember that its run in a container. We can't access a path outside the container.
+                privateKeyFile = "/mullvad/mullvad-private-key";
 
                 peers = [
                   # For a client configuration, one peer entry for the server will suffice.
