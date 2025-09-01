@@ -249,7 +249,6 @@ in
         config =
           {
             lib,
-            config,
             ...
           }:
           {
@@ -264,6 +263,9 @@ in
               # This inner container must be accessible from the outside.
               firewall.allowedTCPPorts = [ (lib.toInt dns_domains."qbittorrent.an") ];
 
+              # By default all forwarded traffic are blocked by the firewall. This makes any traffic coming from the container allowed
+              firewall.trustedInterfaces = [ "ve-qbittorrent" ];
+
               # Use systemd-resolved inside the container
               # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686
               # "Gemini: This is an important networking detail. It tells the container not to simply copy the host's DNS settings.
@@ -275,7 +277,6 @@ in
             services.resolved.enable = true;
 
             system.stateVersion = "25.05";
-            config.containers.qbittorrent.path = "/nix/var/nix/profiles/per-container/webserver";
             networking.firewall = {
               allowedUDPPorts = [ 51820 ]; # Clients and peers can use the same port, see listenport
             };
