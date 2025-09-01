@@ -253,6 +253,15 @@ in
           }:
           {
 
+            # NetworkManager is the default solution and is best suited for desktop integration. systemd-networkd requires manual installation, but works fine for servers, VMs, and containers.
+            # The wireguard setup expects a default gateway and a more normal setup to exist when it runs. Since this is a container we have to set up that "normal" ourselves.
+            # network-online.target is a target that actively waits until the nework is "up", and presumably wireguard waits to setup after this.
+            systemd.network.enable = true;
+            systemd.network.networks."10-eth0" = {
+              matchConfig.Name = "eth0";
+              networkConfig.Gateway = "192.168.100.10";
+            };
+
             services.qbittorrent = {
               enable = true;
               user = "qbittorrent";
@@ -273,7 +282,7 @@ in
               # See https://discourse.nixos.org/t/what-does-mkdefault-do-exactly/9028 for explanation on mkForce
               useHostResolvConf = lib.mkForce false;
             };
-            
+
             services.resolved.enable = true;
 
             system.stateVersion = "25.05";
@@ -288,7 +297,10 @@ in
               wg0 = {
                 # Determines the IP address and subnet of the client's end of the tunnel interface.
                 # I got it by this, it was found in a script from their wireguard linux tutorial: curl -sSL https://api.mullvad.net/wg -d account="<account-number>" --data-urlencode pubkey="$(wg pubkey <<<"<private-key>")"
-                ips = [ "10.68.117.34/32" "fc00:bbbb:bbbb:bb01::5:7521/128" ];
+                ips = [
+                  "10.68.117.34/32"
+                  "fc00:bbbb:bbbb:bb01::5:7521/128"
+                ];
                 listenPort = 51820; # to match firewall allowedUDPPorts (without this wg uses random port numbers)
 
                 # Path to the private key file. Remember that its run in a container. We can't access a path outside the container.
