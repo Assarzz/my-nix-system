@@ -83,6 +83,20 @@ in
             "vfs objects" = "catia fruit streams_xattr";
 
           };
+
+          # NOTE it assumes that nixos configuration is in /etc/nixos and owned by assar
+          "nas-nixos-config" = {
+            comment = "Samba share for making it easier for working on my nixos config on my nas";
+            "force user" = "assar"; 
+            "guest ok" = "yes";
+            "read only" = "no"; 
+            path = "/etc/nixos"; 
+            "create mask" = "0666";
+            "directory mask" = "0777"; 
+            # for ios
+            "vfs objects" = "catia fruit streams_xattr";
+
+          };
         };
       };
 

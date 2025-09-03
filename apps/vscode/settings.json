@@ -34,5 +34,8 @@
                 "component"
             ]
         }
-    }
+    },
+    "workbench.editor.enablePreview": false,
+    "editor.rulers": [
+    ],
 }
