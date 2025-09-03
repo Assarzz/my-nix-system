@@ -11,6 +11,7 @@ let
   conf = import ./conf.nix;
   samba-general = "samba-general"; # The reason for using a variable is to avoid spelling mistakes when i type things often.
   samba-media = "samba-media";
+  nas-nixos-config = "nas-nixos-config";
 in
 {
   # Server configuration
@@ -85,13 +86,13 @@ in
           };
 
           # NOTE it assumes that nixos configuration is in /etc/nixos and owned by assar
-          "nas-nixos-config" = {
+          # For some fuckery indeed fuckery of unheard level, 3 hours to the void, i had to run `sudo smbpasswd -a assar` on the nas and set a password otherwise i would get Permission denied errors even though my setup was identical to my other shares. The only difference that might have been the cause was that assar in this case is a normal user while the other working shares are system users. However originally before i used system users for my shares i managed to use assar user without problem so indeed fuckery of unheard proportion, a bitflip from the edge of the universe, nothing has changedddd i adfasdf as.....
+          "${nas-nixos-config}" = {
             comment = "Samba share for making it easier for working on my nixos config on my nas";
             "force user" = "assar"; 
             "guest ok" = "yes";
             "read only" = "no"; 
-            #path = "/etc/nixos"; 
-            path = "${conf.nasMountPoint}/samba-test-nasmnt";
+            path = "/etc/nixos"; 
             "create mask" = "0666";
             "directory mask" = "0777"; 
             # for ios
