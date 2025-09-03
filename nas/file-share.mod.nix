@@ -91,7 +91,7 @@ in
             "guest ok" = "yes";
             "read only" = "no"; 
             #path = "/etc/nixos"; 
-            path = "/home/assar/samba-test";
+            path = "${conf.nasMountPoint}/samba-test-nasmnt";
             "create mask" = "0666";
             "directory mask" = "0777"; 
             # for ios
