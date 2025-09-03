@@ -256,11 +256,11 @@ in
             # NetworkManager is the default solution and is best suited for desktop integration. systemd-networkd requires manual installation, but works fine for servers, VMs, and containers.
             # The wireguard setup expects a default gateway and a more normal setup to exist when it runs. Since this is a container we have to set up that "normal" ourselves.
             # network-online.target is a target that actively waits until the nework is "up", and presumably wireguard waits to setup after this.
-            systemd.network.enable = true;
+/*             systemd.network.enable = true;
             systemd.network.networks."10-eth0" = {
               matchConfig.Name = "eth0";
               networkConfig.Gateway = "192.168.100.10";
-            };
+            }; */
 
             services.qbittorrent = {
               enable = true;
