@@ -90,7 +90,8 @@ in
             "force user" = "assar"; 
             "guest ok" = "yes";
             "read only" = "no"; 
-            path = "/etc/nixos"; 
+            #path = "/etc/nixos"; 
+            path = "/home/assar/samba-test";
             "create mask" = "0666";
             "directory mask" = "0777"; 
             # for ios
@@ -143,6 +144,8 @@ in
         environment.systemPackages = [ pkgs.cifs-utils ]; 
         fileSystems."${conf.nasCifsMountRoot}/${samba-general}" = mkCifsMount samba-general;
         fileSystems."${conf.nasCifsMountRoot}/${samba-media}" = mkCifsMount samba-media;
+        fileSystems."${conf.nasCifsMountRoot}/nas-nixos-config" = mkCifsMount "nas-nixos-config";
+
 
       }
     )
