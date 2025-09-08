@@ -15,7 +15,6 @@ let
     "kavita.an" = "8081";
     "forgejo.an" = "8082";
     "qbittorrent.an" = "8080";
-    "audiobookshelf.an" = "8084";
     "komga.an" = "8085";
   };
   excludeFromAutoGen = [
@@ -140,21 +139,6 @@ in
       }
     )
 
-    # audiobookshelf reader
-    (
-      { lib, ... }:
-      {
-        services.audiobookshelf.enable = true;
-        services.audiobookshelf.dataDir = "${servicesDataDir}/audiobookshelf";
-        services.audiobookshelf.user = "audiobookshelf";
-        services.audiobookshelf.group = "audiobookshelf";
-        services.audiobookshelf.port = lib.toInt dns_domains."audiobookshelf.an";
-        systemd.tmpfiles.rules = [
-          "d ${servicesDataDir}/audiobookshelf 0755 audiobookshelf audiobookshelf -"
-        ];
-      }
-    )
-
     # komga reader
     (
       { lib, ... }:
@@ -204,7 +188,13 @@ in
     )
 
     # qbittorrent server
-    {
+    (let
+      externalInterface = "enp2s0";
+      myMullvadPrivateKeyFile = "/mullvad/mullvad-private-key";
+      mullvadServerPublicKey = "MkP/Jytkg51/Y/EostONjIN6YaFRpsAYiNKMX27/CAY=";
+      mullvadServerIP = "185.195.233.76";
+      myMullvadServerIPIdentification = "10.68.117.34/32";
+    in {
       services.nginx.virtualHosts."qbittorrent.an" = {
         enableACME = false;
         forceSSL = false;
@@ -229,15 +219,19 @@ in
         internalInterfaces = [ "ve-+" ];
 
         # This tells nat that this is the interface acting as the router, ie the real one with a real ip address, the only ip that actually have access to the internet.
-        externalInterface = "enp2s0";
+        externalInterface = externalInterface;
         # Lazy IPv6 connectivity for the container
         enableIPv6 = true;
       };
-
+      # One part of NAT is IP forwarding.
+      # Without a firewall, enabling IP forwarding would mean that any device on your LAN (192.168.50.x) could potentially send packets to your NAS and have them forwarded into your container's private network
+      #networking.firewall.trustedInterfaces = [ "ve-qbittorrent" ];
+      networking.firewall.logRefusedPackets = true;
       # Since its in a container its sneaky. Things don't work the way they normally work with systemd, like tmpfiles path being altered to be be under var/lib/nixos-containers and journalctl not working normally.
       # sudo journalctl -M qbittorrent
       containers.qbittorrent = {
         autoStart = true; # Starts the container automatically when the host boots up.
+        
         # Creates a separate network namespace for the container, ensuring network isolation. It is responsible for creating the network interface  ve-«container-name»
         privateNetwork = true;
 
@@ -256,10 +250,33 @@ in
             # NetworkManager is the default solution and is best suited for desktop integration. systemd-networkd requires manual installation, but works fine for servers, VMs, and containers.
             # The wireguard setup expects a default gateway and a more normal setup to exist when it runs. Since this is a container we have to set up that "normal" ourselves.
             # network-online.target is a target that actively waits until the nework is "up", and presumably wireguard waits to setup after this.
-/*             systemd.network.enable = true;
-            systemd.network.networks."10-eth0" = {
+            systemd.network.enable = true;
+
+            # Increasing log level to make logs contain more information
+            systemd.services."systemd-networkd".environment.SYSTEMD_LOG_LEVEL = "debug";
+
+            # the veth pair was set up in the way that the physical interfaces, that are technically virtual, 
+            # which is a special type of network seen by the 192.168.100.11/32 from `ip route` which means that its Peer-to-Peer,
+            # so the devices exists but no routing has been. This means that 1. you can't actually demonstrate the the devices is setup since no routes exists. And 2. even tough for example there can only be one possible gateway when setting up a route, this gateway still has to be set nonetheless.
+/*             systemd.network.networks."10-eth0" = {
               matchConfig.Name = "eth0";
-              networkConfig.Gateway = "192.168.100.10";
+              networkConfig = {
+                ConfigureWithoutCarrier = true;
+                DHCP = "no";
+                IPv6AcceptRA = false; 
+                IPv6DuplicateAddressDetection =0; # The ConfigureWithoutCarrier required that some of the options here are set the way they are, but this was actually instead mentioned as "DuplicateAddressDetection" however this worked instead and the mentioned one i could not figure out.
+              };
+              linkConfig = {
+                RequiredForOnline = "no-carrier";
+              };
+
+              # this creates the route `185.195.233.76 via 192.168.100.10 dev eth0 proto static onlink`
+              routes = [
+                {
+                  Gateway = "192.168.100.10";
+                  Destination = mullvadServerIP;
+                }
+              ];
             }; */
 
             services.qbittorrent = {
@@ -273,7 +290,7 @@ in
               firewall.allowedTCPPorts = [ (lib.toInt dns_domains."qbittorrent.an") ];
 
               # By default all forwarded traffic are blocked by the firewall. This makes any traffic coming from the container allowed
-              firewall.trustedInterfaces = [ "ve-qbittorrent" ];
+              #firewall.trustedInterfaces = [ "ve-qbittorrent" ]; # should not be needed
 
               # Use systemd-resolved inside the container
               # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686
@@ -286,40 +303,49 @@ in
             services.resolved.enable = true;
 
             system.stateVersion = "25.05";
+
+            # "This should not be needed i think unless the vpn want to be the one to initiate traffic." Indeed but its peer-to-peer so there will be incoming traffic.
+            # Opening a port is down for the whole namespace. Also you should think of ports as tied to process. Only open firewall if process is listening on a port, in that case there is incoming traffic.
+            # In this case wireguard service connects to the network via this port.
             networking.firewall = {
               allowedUDPPorts = [ 51820 ]; # Clients and peers can use the same port, see listenport
             };
 
             # Enable WireGuard
             networking.wireguard.enable = true;
+
+            # This one made ping request be able to leave the container. the difference in routing table seem to be an added "proto static" for the wg0 interface
+            networking.wireguard.useNetworkd = true;
             networking.wireguard.interfaces = {
               # "wg0" is the network interface name. You can name the interface arbitrarily.
               wg0 = {
                 # Determines the IP address and subnet of the client's end of the tunnel interface.
+                # Mullvad needs to distinguish users using the same mullvad server. It does this via this peer-to-peer ip.
                 # I got it by this, it was found in a script from their wireguard linux tutorial: curl -sSL https://api.mullvad.net/wg -d account="<account-number>" --data-urlencode pubkey="$(wg pubkey <<<"<private-key>")"
                 ips = [
-                  "10.68.117.34/32"
-                  "fc00:bbbb:bbbb:bb01::5:7521/128"
+                  myMullvadServerIPIdentification
+                  #"fc00:bbbb:bbbb:bb01::5:7521/128"
                 ];
                 listenPort = 51820; # to match firewall allowedUDPPorts (without this wg uses random port numbers)
 
                 # Path to the private key file. Remember that its run in a container. We can't access a path outside the container.
-                privateKeyFile = "/mullvad/mullvad-private-key";
+                privateKeyFile = myMullvadPrivateKeyFile;
 
                 peers = [
                   # For a client configuration, one peer entry for the server will suffice.
 
                   {
                     # Public key of the server (not a file path).
-                    publicKey = "MkP/Jytkg51/Y/EostONjIN6YaFRpsAYiNKMX27/CAY=";
+                    publicKey = mullvadServerPublicKey;
 
-                    # Forward all the traffic via VPN.
+                    # Forward all the traffic via VPN. The value 0.0.0.0/0 is a special notation that means "all possible IPv4 addresses"
+                    # This sets up the routing entry in the container.
                     allowedIPs = [ "0.0.0.0/0" ];
                     # Or forward only particular subnets
                     #allowedIPs = [ "10.100.0.1" "91.108.12.0/22" ];
 
                     # Set this to the server IP and port.
-                    endpoint = "185.195.233.76:51820"; # ToDo: route to endpoint not automatically configured https://wiki.archlinux.org/index.php/WireGuard#Loop_routing https://discourse.nixos.org/t/solved-minimal-firewall-setup-for-wireguard-client/7577
+                    endpoint = "${mullvadServerIP}:51820"; # ToDo: route to endpoint not automatically configured https://wiki.archlinux.org/index.php/WireGuard#Loop_routing https://discourse.nixos.org/t/solved-minimal-firewall-setup-for-wireguard-client/7577
 
                     # Send keepalives every 25 seconds. Important to keep NAT tables alive.
                     persistentKeepalive = 25;
@@ -330,7 +356,7 @@ in
 
           };
       };
-    }
+    })
 
   ];
 }
