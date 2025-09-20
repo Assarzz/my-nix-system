@@ -38,4 +38,9 @@
     "workbench.editor.enablePreview": false,
     "editor.rulers": [
     ],
+    "window.zoomLevel": 1,
+    "workbench.navigationControl.enabled": false,
+    "editor.minimap.size": "fill",
+    "editor.minimap.scale": 2,
+    "workbench.statusBar.visible": false,
 }
