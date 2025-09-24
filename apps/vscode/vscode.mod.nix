@@ -18,12 +18,24 @@
       }
     )
 
+    {
+      # Allow using qtwebengine-5.15.19 despite it being insecure. It is used by vscode python extension.
+      nixpkgs.config.permittedInsecurePackages = [
+        "qtwebengine-5.15.19"
+      ];
+    }
+
   ];
   personal.home_modules = [
 
     # vs-code
     (
-      { pkgs, lib, config, ... }:
+      {
+        pkgs,
+        lib,
+        config,
+        ...
+      }:
       let
         # gets the path of the root directory, /etc/nixos in my case.
 
@@ -44,14 +56,14 @@
           pkgs.vscode-extensions.streetsidesoftware.code-spell-checker
 
           pkgs.vscode-extensions.jnoortheen.nix-ide
+          pkgs.nix-vscode-extensions.vscode-marketplace.ms-python.python
 
           pkgs.vscode-extensions.rust-lang.rust-analyzer
           pkgs.nix-vscode-extensions.vscode-marketplace.tamasfe.even-better-toml
           pkgs.vscode-extensions.sumneko.lua
           # default jedi was garbage
-          # pkgs.vscode-extensions.ms-python.vscode-pylance
+          pkgs.vscode-extensions.ms-python.vscode-pylance
           #pkgs.vscode-extensions.ms-python.python
-          #pkgs.nix-vscode-extensions.vscode-marketplace.ms-python.python
         ];
       in
       {
