@@ -17,10 +17,12 @@ let
     "qbittorrent.an" = "8080";
     "komga.an" = "8085";
     "calibre.an" = "8883";
+    "qbittorrentoutside.an" = "9000"; # for debugging
   };
   excludeFromAutoGen = [
     "qbittorrent.an"
     "calibre.an"
+    "qbittorrentoutside.an"
   ];
   # dnsmasq option format : -A, --address=/<domain>[/<domain>...]/[<ipaddr>]
   dns_addresses =
@@ -98,7 +100,6 @@ in
       {
         services.jellyfin = {
           enable = true;
-          dataDir = "${servicesDataDir}/jellyfin";
           user = "jellyfin";
           group = "jellyfin";
         };
@@ -313,6 +314,9 @@ in
             # Configure namespace side (only local route, no default)
             ${pkgs.iproute2}/bin/ip netns exec ${wgNamespace} ${pkgs.iproute2}/bin/ip addr add 192.168.200.2/24 dev veth-qb-ns
             ${pkgs.iproute2}/bin/ip netns exec ${wgNamespace} ${pkgs.iproute2}/bin/ip link set veth-qb-ns up
+
+            # Shenanigans to activate the loopback interface in the namespace (IDK why its not up by default).
+            ${pkgs.iproute2}/bin/ip netns exec ${wgNamespace} ${pkgs.iproute2}/bin/ip link set lo up
           '';
           # Clean up when service stops
           # Deleting the main veth interface also deletes the peer interface.
@@ -353,7 +357,6 @@ in
 
                 # Set this to the server IP and port.
                 endpoint = "${mullvadServerIP}:51820"; # ToDo: route to endpoint not automatically configured https://wiki.archlinux.org/index.php/WireGuard#Loop_routing https://discourse.nixos.org/t/solved-minimal-firewall-setup-for-wireguard-client/7577
-
                 # Send keepalives every 25 seconds. Important to keep NAT tables alive.
                 persistentKeepalive = 25;
               }
@@ -365,18 +368,34 @@ in
         containers.qbittorrent = {
           autoStart = true; # Starts the container automatically when the host boots up.
           networkNamespace = "/var/run/netns/${wgNamespace}";
+
           config =
             {
               lib,
               ...
             }:
             {
-
+              environment.systemPackages = with pkgs; [
+                dnslookup
+              ];
               services.qbittorrent = {
                 enable = true;
                 user = "qbittorrent";
                 group = "qbittorrent";
                 webuiPort = lib.toInt dns_domains."qbittorrent.an";
+                serverConfig = {
+                  Preferences = {
+                    WebUI = {
+                      AlternativeUIEnabled = true;
+                      RootFolder = "${pkgs.vuetorrent}/share/vuetorrent";
+                      Username = "assar";
+                      # generated with:
+                      # nix run 'git+https://codeberg.org/feathecutie/qbittorrent_password' -- -p password
+                      Password_PBKDF2 = "yaBixdwgdNiw8NOsrwzAmg==:i6oS+jX70/srRxhi8pfQf68fTbEDQLYsL2MGTB8bcsJ4qUHemYLGTEKAoR7MGgrj0sg6kqPhTrl/919ZEp3WMw==";
+                    };
+                    #Downloads.SavePath = "/srv/media/Downloads";
+                  };
+                };
               };
               networking = {
                 # This inner container must be accessible from the outside.
@@ -395,6 +414,13 @@ in
 
               services.resolved.enable = true;
 
+              # Before i was using sytemd.network, but since i am not managing the interfaces with systemd-networkd, i think thats why it didn't work.
+              # These entries are added to /etc/systemd/resolved.conf, and not /etc/resolv.conf because we abstract away with resolved and in fact you can see that the only entry in /etc/resolv.conf is 127.0.0.53, pointing to resolved dns resolver (treated as a dns server) itself.
+              networking.nameservers = [
+                "1.1.1.1" # Cloudflare
+                "8.8.8.8" # Google
+              ];
+
               system.stateVersion = "25.05";
 
               # "This should not be needed i think unless the vpn want to be the one to initiate traffic." Indeed but its peer-to-peer so there will be incoming traffic.
@@ -412,6 +438,37 @@ in
 
             };
         };
+      }
+    )
+
+    # qbittorrent server outside container, for debugging
+    (
+      { pkgs, lib, ... }:
+      {
+        services.qbittorrent = {
+          enable = true;
+          user = "qbittorrent";
+          group = "qbittorrent";
+          webuiPort = 9000;
+        };
+        services.nginx.virtualHosts."qbittorrentoutside.an" = {
+          enableACME = false;
+          forceSSL = false;
+          locations."/" = {
+
+            # The veth pair creates a network, and we target the ip in the container network namespace not even the hosts veth ip.
+            # A little bit confused how this works without NAT.
+            proxyPass = "http://127.0.0.1:9000";
+            proxyWebsockets = true; # needed if you need to use WebSocket
+            extraConfig =
+              # required when the target is also TLS server with multiple hosts
+              "proxy_ssl_server_name on;"
+              +
+                # required when the server wants to use HTTP Authentication
+                "proxy_pass_header Authorization;";
+          };
+        };
+
       }
     )
 
