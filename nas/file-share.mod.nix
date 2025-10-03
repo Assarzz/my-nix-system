@@ -10,7 +10,6 @@
 let
   conf = import ./conf.nix;
   samba-general = "samba-general"; # The reason for using a variable is to avoid spelling mistakes when i type things often.
-  samba-media = "samba-media";
   nas-nixos-config = "nas-nixos-config";
 in
 {
@@ -24,22 +23,21 @@ in
         fsType = "ext4";
       };
 
-      users.users."${samba-media}" = {
-        isSystemUser = true;
-        group = samba-media;
-      };
-      users.groups."${samba-media}" = {};
-      # "If set to `"-"` no automatic clean-up is done."
-
       users.users."${samba-general}" = {
-        isSystemUser = true; # The difference between normal and system user is purely organizational. System users should not need to show up when you log in for example.
+        isSystemUser = true; # The difference between normal and system user IN LINUX is purely organizational. UID bellow 1000 is for normal users. However i don't think it has an effect since i set UID explicitly.
         group = samba-general;
+        uid = 991; # NOTE this was chosen automatically, but i set it afterwards anyways to make it work for other that use this.
       };
       users.groups."${samba-general}" = {};
       
+      
       systemd.tmpfiles.rules = [
-        "d ${conf.nasMountPoint}/${samba-media} 0755 ${samba-media} ${samba-media} -"
+        # "If set to `"-"` no automatic clean-up is done."
         "d ${conf.nasMountPoint}/${samba-general} 0755 ${samba-general} ${samba-general} -"
+
+        # this will be bound mounted inside the qbittorrent container.
+        "d ${conf.nasMountPoint}/${samba-general}/qbittorrent 0755 ${samba-general} ${samba-general} -"
+
       ];
 
       services.samba = {
@@ -66,18 +64,6 @@ in
             "guest ok" = "yes";
             "read only" = "no"; # "If this parameter is yes, then users of a service may not create or modify files in the service's directory.", indicating that share and service are the same thing.
             path = "${conf.nasMountPoint}/${samba-general}"; # "This parameter specifies a directory to which the user of the service is to be given access."
-            "create mask" = "0666"; # For file. Basically guarantees you cant create executable files. " Any bit not set here will be removed from the modes set on a file when it is created."
-            "directory mask" = "0777"; # For directory. Leaves permissions unchanged from created once. Or perhaps it removes the special byte i guess?
-            # for ios
-            "vfs objects" = "catia fruit streams_xattr";
-
-          };
-          "${samba-media}" = {
-            comment = "Samba share for media";
-            "force user" = samba-media; # guest account + guest ok is not enough apparently. Need this otherwise Permission denied when creating files on linux.(either way it works on ipad)
-            "guest ok" = "yes";
-            "read only" = "no"; # "If this parameter is yes, then users of a service may not create or modify files in the service's directory.", indicating that share and service are the same thing.
-            path = "${conf.nasMountPoint}/${samba-media}"; # "This parameter specifies a directory to which the user of the service is to be given access."
             "create mask" = "0666"; # For file. Basically guarantees you cant create executable files. " Any bit not set here will be removed from the modes set on a file when it is created."
             "directory mask" = "0777"; # For directory. Leaves permissions unchanged from created once. Or perhaps it removes the special byte i guess?
             # for ios
@@ -144,10 +130,7 @@ in
         # this line is needed otherwise "Error: Failed to open unit file /nix/store/w...5/etc/systemd/system/home-assar-mnt-nas.mount"
         environment.systemPackages = [ pkgs.cifs-utils ]; 
         fileSystems."${conf.nasCifsMountRoot}/${samba-general}" = mkCifsMount samba-general;
-        fileSystems."${conf.nasCifsMountRoot}/${samba-media}" = mkCifsMount samba-media;
         fileSystems."${conf.nasCifsMountRoot}/${nas-nixos-config}" = mkCifsMount nas-nixos-config;
-
-
       }
     )
   ];

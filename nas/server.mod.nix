@@ -103,7 +103,7 @@ in
           user = "jellyfin";
           group = "jellyfin";
         };
-        users.users.jellyfin.extraGroups = [ "samba-media" ];
+        users.users.jellyfin.extraGroups = [ "samba-general" ];
         # Jellyfin source code hardcodes the root dataDir to permissions 700, which would mean that no matter what another group would not be able to read files in that directory. However since jellyfin works by having paths to media and not store it itself, it does not matter.
 
       }
@@ -136,9 +136,9 @@ in
         systemd.services.kavita.preStart = lib.mkBefore ''
           mkdir -p ${config.services.kavita.dataDir}/config
         '';
-        # Adds kavita user to users samba-media
+        # Adds kavita user to users samba-general
         # This means that kavita will only ever be able to get its media from files with this group.
-        users.users.kavita.extraGroups = [ "samba-media" ];
+        users.users.kavita.extraGroups = [ "samba-general" ];
       }
     )
 
@@ -315,7 +315,7 @@ in
             ${pkgs.iproute2}/bin/ip netns exec ${wgNamespace} ${pkgs.iproute2}/bin/ip addr add 192.168.200.2/24 dev veth-qb-ns
             ${pkgs.iproute2}/bin/ip netns exec ${wgNamespace} ${pkgs.iproute2}/bin/ip link set veth-qb-ns up
 
-            # Shenanigans to activate the loopback interface in the namespace (IDK why its not up by default).
+            # Shenanigans to activate the loopback interface in the namespace (idk why its not up by default, perhaps because of no privateNetwork).
             ${pkgs.iproute2}/bin/ip netns exec ${wgNamespace} ${pkgs.iproute2}/bin/ip link set lo up
           '';
           # Clean up when service stops
@@ -365,112 +365,99 @@ in
 
         };
 
-        containers.qbittorrent = {
-          autoStart = true; # Starts the container automatically when the host boots up.
-          networkNamespace = "/var/run/netns/${wgNamespace}";
+        containers.qbittorrent =
+          let
+            qbittorrentDownloadsDir = "/qbittorrent-downloads";
+          in
+          {
 
-          config =
-            {
-              lib,
-              ...
-            }:
-            {
-              environment.systemPackages = with pkgs; [
-                dnslookup
-              ];
-              services.qbittorrent = {
-                enable = true;
-                user = "qbittorrent";
-                group = "qbittorrent";
-                webuiPort = lib.toInt dns_domains."qbittorrent.an";
-                serverConfig = {
-                  Preferences = {
-                    WebUI = {
-                      AlternativeUIEnabled = true;
-                      RootFolder = "${pkgs.vuetorrent}/share/vuetorrent";
-                      Username = "assar";
-                      # generated with:
-                      # nix run 'git+https://codeberg.org/feathecutie/qbittorrent_password' -- -p password
-                      Password_PBKDF2 = "yaBixdwgdNiw8NOsrwzAmg==:i6oS+jX70/srRxhi8pfQf68fTbEDQLYsL2MGTB8bcsJ4qUHemYLGTEKAoR7MGgrj0sg6kqPhTrl/919ZEp3WMw==";
+            bindMounts.samba-share = {
+              mountPoint = qbittorrentDownloadsDir;
+              hostPath = "${conf.nasMountPoint}/samba-general/qbittorrent";
+              isReadOnly = false;
+            };
+            autoStart = true; # Starts the container automatically when the host boots up.
+            networkNamespace = "/var/run/netns/${wgNamespace}";
+
+            config =
+              {
+                lib,
+                ...
+              }:
+              {
+                environment.systemPackages = with pkgs; [
+                  dnslookup
+                ];
+                users.users."samba-general" = {
+                  isSystemUser = true; # The difference between normal and system user IN LINUX is purely organizational. UID bellow 1000 is for normal users. However i don't think it has an effect since i set UID explicitly.
+                  group = "samba-general";
+                  # Aligns with the host samba-general user because the bindmounted directory is owned by this uid even in the container.
+                  uid = 991; 
+                };
+                # Note you need this line, because this is the line that creates the group.
+                users.groups."samba-general" = {};
+
+                services.qbittorrent = {
+                  enable = true;
+                  user = "samba-general";
+                  group = "samba-general";
+                  webuiPort = lib.toInt dns_domains."qbittorrent.an";
+                  serverConfig = {
+                    Preferences = {
+                      WebUI = {
+                        AlternativeUIEnabled = true;
+                        RootFolder = "${pkgs.vuetorrent}/share/vuetorrent";
+                        Username = "assar";
+                        # generated with:
+                        # nix run 'git+https://codeberg.org/feathecutie/qbittorrent_password' -- -p password
+                        Password_PBKDF2 = "yaBixdwgdNiw8NOsrwzAmg==:i6oS+jX70/srRxhi8pfQf68fTbEDQLYsL2MGTB8bcsJ4qUHemYLGTEKAoR7MGgrj0sg6kqPhTrl/919ZEp3WMw==";
+                      };
+                      Downloads.SavePath = qbittorrentDownloadsDir;
                     };
-                    #Downloads.SavePath = "/srv/media/Downloads";
                   };
                 };
+                networking = {
+                  # This inner container must be accessible from the outside.
+                  firewall.allowedTCPPorts = [ (lib.toInt dns_domains."qbittorrent.an") ];
+
+                  # By default all forwarded traffic are blocked by the firewall. This makes any traffic coming from the container allowed
+                  #firewall.trustedInterfaces = [ "ve-qbittorrent" ]; # should not be needed
+
+                  # Use systemd-resolved inside the container
+                  # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686
+                  # "Gemini: This is an important networking detail. It tells the container not to simply copy the host's DNS settings.
+                  # Instead, it runs its own DNS resolver (systemd-resolved) inside the container. This improves isolation and prevents certain network-related bugs."
+                  # See https://discourse.nixos.org/t/what-does-mkdefault-do-exactly/9028 for explanation on mkForce
+                  useHostResolvConf = lib.mkForce false;
+                };
+
+                services.resolved.enable = true;
+
+                # Before i was using sytemd.network, but since i am not managing the interfaces with systemd-networkd, i think thats why it didn't work.
+                # These entries are added to /etc/systemd/resolved.conf, and not /etc/resolv.conf because we abstract away with resolved and in fact you can see that the only entry in /etc/resolv.conf is 127.0.0.53, pointing to resolved dns resolver (treated as a dns server) itself.
+                networking.nameservers = [
+                  "1.1.1.1" # Cloudflare
+                  "8.8.8.8" # Google
+                ];
+
+                system.stateVersion = "25.05";
+
+                # "This should not be needed i think unless the vpn want to be the one to initiate traffic." Indeed but its peer-to-peer so there will be incoming traffic.
+                # Opening a port is down for the whole namespace. Also you should think of ports as tied to process. Only open firewall if process is listening on a port, in that case there is incoming traffic.
+                # In this case wireguard service connects to the network via this port.
+                networking.firewall = {
+                  allowedUDPPorts = [ 51820 ]; # Clients and peers can use the same port, see listenport
+                };
+
+                # Enable WireGuard
+                networking.wireguard.enable = true;
+
+                # This one made ping request be able to leave the container. the difference in routing table seem to be an added "proto static" for the wg0 interface
+                #networking.wireguard.useNetworkd = true;
+
               };
-              networking = {
-                # This inner container must be accessible from the outside.
-                firewall.allowedTCPPorts = [ (lib.toInt dns_domains."qbittorrent.an") ];
-
-                # By default all forwarded traffic are blocked by the firewall. This makes any traffic coming from the container allowed
-                #firewall.trustedInterfaces = [ "ve-qbittorrent" ]; # should not be needed
-
-                # Use systemd-resolved inside the container
-                # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686
-                # "Gemini: This is an important networking detail. It tells the container not to simply copy the host's DNS settings.
-                # Instead, it runs its own DNS resolver (systemd-resolved) inside the container. This improves isolation and prevents certain network-related bugs."
-                # See https://discourse.nixos.org/t/what-does-mkdefault-do-exactly/9028 for explanation on mkForce
-                useHostResolvConf = lib.mkForce false;
-              };
-
-              services.resolved.enable = true;
-
-              # Before i was using sytemd.network, but since i am not managing the interfaces with systemd-networkd, i think thats why it didn't work.
-              # These entries are added to /etc/systemd/resolved.conf, and not /etc/resolv.conf because we abstract away with resolved and in fact you can see that the only entry in /etc/resolv.conf is 127.0.0.53, pointing to resolved dns resolver (treated as a dns server) itself.
-              networking.nameservers = [
-                "1.1.1.1" # Cloudflare
-                "8.8.8.8" # Google
-              ];
-
-              system.stateVersion = "25.05";
-
-              # "This should not be needed i think unless the vpn want to be the one to initiate traffic." Indeed but its peer-to-peer so there will be incoming traffic.
-              # Opening a port is down for the whole namespace. Also you should think of ports as tied to process. Only open firewall if process is listening on a port, in that case there is incoming traffic.
-              # In this case wireguard service connects to the network via this port.
-              networking.firewall = {
-                allowedUDPPorts = [ 51820 ]; # Clients and peers can use the same port, see listenport
-              };
-
-              # Enable WireGuard
-              networking.wireguard.enable = true;
-
-              # This one made ping request be able to leave the container. the difference in routing table seem to be an added "proto static" for the wg0 interface
-              #networking.wireguard.useNetworkd = true;
-
-            };
-        };
-      }
-    )
-
-    # qbittorrent server outside container, for debugging
-    (
-      { pkgs, lib, ... }:
-      {
-        services.qbittorrent = {
-          enable = true;
-          user = "qbittorrent";
-          group = "qbittorrent";
-          webuiPort = 9000;
-        };
-        services.nginx.virtualHosts."qbittorrentoutside.an" = {
-          enableACME = false;
-          forceSSL = false;
-          locations."/" = {
-
-            # The veth pair creates a network, and we target the ip in the container network namespace not even the hosts veth ip.
-            # A little bit confused how this works without NAT.
-            proxyPass = "http://127.0.0.1:9000";
-            proxyWebsockets = true; # needed if you need to use WebSocket
-            extraConfig =
-              # required when the target is also TLS server with multiple hosts
-              "proxy_ssl_server_name on;"
-              +
-                # required when the server wants to use HTTP Authentication
-                "proxy_pass_header Authorization;";
           };
-        };
-
       }
     )
-
   ];
 }

@@ -11,7 +11,7 @@ let
   mnt = conf.nasMountPoint;
 
   # This line here depends on every other mod file to make sure the entries specified actually exists.
-  whatToBackup = [ "${mnt}/samba-general/backup" "${mnt}/samba-media/backup" "${mnt}/syncthing/general3/backup" ]; 
+  whatToBackup = [ "${mnt}/samba-general/backup" "${mnt}/syncthing/general3/backup" ]; 
   do-backup = pkgs.writeShellApplication {
     name = "do-backup";
 
