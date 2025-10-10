@@ -14,8 +14,10 @@
     stylix.url = "github:danth/stylix";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
 
-/*     helix.url = "github:helix-editor/helix";
-    helix.inputs.nixpkgs.follows = "nixpkgs"; */
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     ags_system.url = "github:Assarzz/ags_overlay";
     ags_system.inputs.nixpkgs.follows = "nixpkgs";
