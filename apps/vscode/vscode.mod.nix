@@ -13,10 +13,14 @@
         environment.systemPackages = with pkgs; [
           nixfmt-rfc-style # formatter for nix required to be in path by nix-ide vscode extension
           nixd # nix language server required to be in path by nix-ide
+          python313 # platformio-ide vscode extension requires python 3.6 or later in path
         ];
 
       }
     )
+    ({pkgs, ...}: {
+      environment.systemPackages = [ pkgs.nodejs_24 ];
+    })
 
     {
       # Allow using qtwebengine-5.15.19 despite it being insecure. It is used by vscode python extension.
@@ -48,6 +52,11 @@
 
         # I had weird experience with some extensions not loading when i had home-manger config, and giving errors. Running a total flake update and rebuilding fixed it.
         extensions = [
+
+          # For a university course working with a ESP32 smart watch
+          pkgs.nix-vscode-extensions.vscode-marketplace.platformio.platformio-ide
+
+          pkgs.nix-vscode-extensions.vscode-marketplace.anthropic.claude-code
 
           pkgs.nix-vscode-extensions.vscode-marketplace.rubymaniac.vscode-direnv
 

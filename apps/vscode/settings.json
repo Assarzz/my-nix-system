@@ -44,4 +44,5 @@
     "editor.minimap.scale": 2,
     "workbench.statusBar.visible": false,
     "python.languageServer": "Pylance",
+    "editor.minimap.enabled": false,
 }
