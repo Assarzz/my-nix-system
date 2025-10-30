@@ -18,6 +18,7 @@
 
       }
     )
+    # nodejs 24 for some vscode extension. i don't recall which.
     ({pkgs, ...}: {
       environment.systemPackages = [ pkgs.nodejs_24 ];
     })
@@ -28,6 +29,12 @@
         "qtwebengine-5.15.19"
       ];
     }
+
+    # General
+    ({pkgs, ...}: {
+      # add assar user to dialout group for serial port access (platformio-ide vscode extension)
+      users.users.assar.extraGroups = [ "dialout" ];
+    })
 
   ];
   personal.home_modules = [
@@ -54,7 +61,9 @@
         extensions = [
 
           # For a university course working with a ESP32 smart watch
-          pkgs.nix-vscode-extensions.vscode-marketplace.platformio.platformio-ide
+          # pkgs.nix-vscode-extensions.vscode-marketplace.platformio.platformio-ide
+          pkgs.vscode-extensions.platformio.platformio-vscode-ide
+          pkgs.nix-vscode-extensions.vscode-marketplace.wokwi.wokwi-vscode
 
           pkgs.nix-vscode-extensions.vscode-marketplace.anthropic.claude-code
 

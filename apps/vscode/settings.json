@@ -45,4 +45,5 @@
     "python.languageServer": "Pylance",
     "editor.minimap.enabled": false,
     "workbench.navigationControl.enabled": false,
+    "terminal.integrated.stickyScroll.enabled": false,
 }
