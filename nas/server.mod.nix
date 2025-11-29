@@ -17,12 +17,11 @@ let
     "qbittorrent.an" = "8080";
     "komga.an" = "8085";
     "calibre.an" = "8883";
-    "qbittorrentoutside.an" = "9000"; # for debugging
   };
   excludeFromAutoGen = [
     "qbittorrent.an"
     "calibre.an"
-    "qbittorrentoutside.an"
+    "forgejo.an"
   ];
   # dnsmasq option format : -A, --address=/<domain>[/<domain>...]/[<ipaddr>]
   dns_addresses =
@@ -190,9 +189,18 @@ in
       let
         cfg = config.services.forgejo;
         srv = cfg.settings.server;
+        forgejoan = "forgejo.an";
       in
       {
 
+        # We don't have it behind nginx because then the DOMAIN would technically be localhost, which forgejo uses to generate git clone urls, which would not work outside the nas, i can't clone or push with ssh://forgejo@127.0.0.1/assar/testerdel.git
+        # We need to open ports in the firewall since we aren't using nginx reverse proxy for forgejo.
+        networking.firewall.allowedTCPPorts = [
+          lib.toInt dns_domains.${forgejoan}
+        ];
+        networking.firewall.allowedUDPPorts = [
+          lib.toInt dns_domains.${forgejoan}
+        ];
         services.forgejo = {
           enable = true;
           stateDir = "${servicesDataDir}/forgejo";
@@ -203,10 +211,10 @@ in
           lfs.enable = true;
           settings = {
             server = {
-              DOMAIN = "127.0.0.1"; # This should by all means be allowed to be localhost since i am using a reverse proxy, however for some reason the ssh/http link for cloning the repo uses this specified domain options which means that i will have to modify the cloning path manually.
+              DOMAIN = forgejoan;
               # You need to specify this to remove the port from URLs in the web UI.
               ROOT_URL = "https://${srv.DOMAIN}/";
-              HTTP_PORT = lib.toInt dns_domains."forgejo.an";
+              HTTP_PORT = lib.toInt dns_domains.${forgejoan};
             };
             # You can temporarily allow registration to create an admin user.
             service.DISABLE_REGISTRATION = false;
