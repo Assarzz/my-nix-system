@@ -78,6 +78,7 @@ in
 
               # If you include extra after the domain name, you can add extra functionality. "/" is a catch all.
               locations."/" = {
+                # This tells nginx to proxy instead of for example redirect or serve static files.
                 proxyPass = "http://127.0.0.1:${port}";
                 proxyWebsockets = true; # needed if you need to use WebSocket
                 extraConfig =
@@ -194,6 +195,16 @@ in
       {
 
         # We don't have it behind nginx because then the DOMAIN would technically be localhost, which forgejo uses to generate git clone urls, which would not work outside the nas, i can't clone or push with ssh://forgejo@127.0.0.1/assar/testerdel.git
+        services.nginx.virtualHosts."forgejo.an" = {
+          enableACME = false;
+          forceSSL = false;
+
+          # This tells Nginx: If someone hits port 80 requesting "forgejo.an",
+          # do not proxy the traffic. Instead, tell the browser to go to port 8082.
+          locations."/" = {
+            return = "301 http://${forgejoan}:${dns_domains.${forgejoan}}$request_uri";
+          };
+        };
         # We need to open ports in the firewall since we aren't using nginx reverse proxy for forgejo.
         networking.firewall.allowedTCPPorts = [
           (lib.toInt dns_domains.${forgejoan})
@@ -213,7 +224,7 @@ in
             server = {
               DOMAIN = forgejoan;
               # You need to specify this to remove the port from URLs in the web UI.
-              ROOT_URL = "https://${srv.DOMAIN}/";
+              ROOT_URL = "http://${srv.DOMAIN}/";
               HTTP_PORT = lib.toInt dns_domains.${forgejoan};
             };
             # You can temporarily allow registration to create an admin user.
@@ -400,10 +411,10 @@ in
                   isSystemUser = true; # The difference between normal and system user IN LINUX is purely organizational. UID bellow 1000 is for normal users. However i don't think it has an effect since i set UID explicitly.
                   group = "samba-general";
                   # Aligns with the host samba-general user because the bindmounted directory is owned by this uid even in the container.
-                  uid = 991; 
+                  uid = 991;
                 };
                 # Note you need this line, because this is the line that creates the group.
-                users.groups."samba-general" = {};
+                users.groups."samba-general" = { };
 
                 services.qbittorrent = {
                   enable = true;
