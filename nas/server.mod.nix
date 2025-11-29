@@ -196,10 +196,10 @@ in
         # We don't have it behind nginx because then the DOMAIN would technically be localhost, which forgejo uses to generate git clone urls, which would not work outside the nas, i can't clone or push with ssh://forgejo@127.0.0.1/assar/testerdel.git
         # We need to open ports in the firewall since we aren't using nginx reverse proxy for forgejo.
         networking.firewall.allowedTCPPorts = [
-          lib.toInt dns_domains.${forgejoan}
+          (lib.toInt dns_domains.${forgejoan})
         ];
         networking.firewall.allowedUDPPorts = [
-          lib.toInt dns_domains.${forgejoan}
+          (lib.toInt dns_domains.${forgejoan})
         ];
         services.forgejo = {
           enable = true;
