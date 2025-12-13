@@ -239,6 +239,20 @@ in
       }
     )
 
+    # minecraft server
+
+ ({pkgs, ... }:
+
+{
+  # 1. Enable the Minecraft Server
+  services.minecraft-server = {
+    enable = true;
+    eula = true; # You must accept the EULA
+    openFirewall = true; 
+  };
+  
+})
+
     # qbittorrent server
     (
       { pkgs, ... }:
