@@ -256,7 +256,7 @@ services.minecraft-server = {
 
     # 2. Optimize View Distance settings
     serverProperties = {
-      view-distance = 24;
+      view-distance = 14;
       difficulty="normal";
 
       # "Simulation Distance": How far physics run (Crops grow, mobs move)
