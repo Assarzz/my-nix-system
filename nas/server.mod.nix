@@ -252,11 +252,12 @@ services.minecraft-server = {
     # 1. Switch to Paper for better performance
     package = pkgs.papermc; 
 
+    declarative = true;
+
     # 2. Optimize View Distance settings
     serverProperties = {
-      # "View Distance": How far you can SEE (Chunks are loaded visually)
-      # 10 is standard, 12-16 is "far". (Start with 12)
       view-distance = 24;
+      difficulty="normal";
 
       # "Simulation Distance": How far physics run (Crops grow, mobs move)
       # Keep this low (5-6) to save CPU on your NAS while keeping nice views.
