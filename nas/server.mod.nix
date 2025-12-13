@@ -256,7 +256,7 @@ services.minecraft-server = {
     serverProperties = {
       # "View Distance": How far you can SEE (Chunks are loaded visually)
       # 10 is standard, 12-16 is "far". (Start with 12)
-      view-distance = 16;
+      view-distance = 24;
 
       # "Simulation Distance": How far physics run (Crops grow, mobs move)
       # Keep this low (5-6) to save CPU on your NAS while keeping nice views.
