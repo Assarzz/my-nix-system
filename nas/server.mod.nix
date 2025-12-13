@@ -250,6 +250,9 @@ in
     eula = true; # You must accept the EULA
     openFirewall = true; 
   };
+
+  services.tailscale.enable = true;
+networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on NixOS
   
 })
 
