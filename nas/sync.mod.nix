@@ -39,7 +39,7 @@ let
               # 2. DEFINE THE SHARED FOLDER
               #    This creates a folder and shares it with the peer devices.
               folders = {
-                # The name here ("General") becomes the default path and label.
+                # The name here ("general3") becomes the default path and label.
                 "general3" = {
                   # This ID must be IDENTICAL on all devices for the folder to sync.
                   id = "general-shared-folder3";
