@@ -339,9 +339,12 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
         systemd.services.wireguard-wg0 = {
           after = [ "container@qbittorrent.service" ];
           requires = [ "container@qbittorrent.service" ];
-        };
+          # NEW: Restarts WG if container restarts
+          partOf = [ "container@qbittorrent.service" ]; 
+          
           # NEW: Ensures WG starts automatically when the container starts
           wantedBy = [ "container@qbittorrent.service" ];
+        };
         
         systemd.services.create-wireguard-namespace = {
           description = "Create WireGuard network namespace";
