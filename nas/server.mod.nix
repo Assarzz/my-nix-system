@@ -335,17 +335,6 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
         # Since its in a container its sneaky. Things don't work the way they normally work with systemd, like tmpfiles path being altered to be be under var/lib/nixos-containers and journalctl not working normally.
         # sudo journalctl -M qbittorrent
 
-        # Magic, this line turned red errors into white calming beautiful text! The problem was that wg0 setup ran before the container had set up networking namespace
-        systemd.services.wireguard-wg0 = {
-          after = [ "container@qbittorrent.service" ];
-          requires = [ "container@qbittorrent.service" ];
-          # NEW: Restarts WG if container restarts
-          partOf = [ "container@qbittorrent.service" ]; 
-          
-          # NEW: Ensures WG starts automatically when the container starts
-          wantedBy = [ "container@qbittorrent.service" ];
-        };
-        
         systemd.services.create-wireguard-namespace = {
           description = "Create WireGuard network namespace";
           wantedBy = [ "multi-user.target" ];
@@ -373,7 +362,7 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
           wantedBy = [ "multi-user.target" ];
           requires = [ "create-wireguard-namespace.service" ];
 
-          # Unsure if this is needed.
+          # If container is stopped or restarted, so is this 
           partOf = [ "container@qbittorrent.service" ];
 
           serviceConfig = {
@@ -405,6 +394,17 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
           preStop = ''
             ${pkgs.iproute2}/bin/ip link delete veth-qb || true
           '';
+        };
+        
+        # Magic, this line turned red errors into white calming beautiful text! The problem was that wg0 setup ran before the container had set up networking namespace
+        systemd.services.wireguard-wg0 = {
+          after = [ "container@qbittorrent.service" ];
+          requires = [ "container@qbittorrent.service" ];
+          # NEW: Restarts WG if container restarts
+          partOf = [ "container@qbittorrent.service" ]; 
+          
+          # NEW: Ensures WG starts automatically when the container starts
+          wantedBy = [ "container@qbittorrent.service" ];
         };
         networking.wireguard.interfaces = {
           # "wg0" is the network interface name. You can name the interface arbitrarily.
