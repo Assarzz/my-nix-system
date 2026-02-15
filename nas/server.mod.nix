@@ -306,7 +306,7 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
         myMullvadPrivateKeyFile = "/home/assar/mullvad-private-key";
         mullvadServerPublicKey = "MkP/Jytkg51/Y/EostONjIN6YaFRpsAYiNKMX27/CAY=";
         mullvadServerIP = "185.195.233.76";
-        myMullvadServerIPIdentification = "10.68.117.34/32";
+        myMullvadServerIPIdentification = "10.74.197.161/32";
         wgNamespace = "qbittorrent";
       in
       {
@@ -412,9 +412,11 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
 
             # The interface is moved into this network namespace, leaving the original socket behind. Allowing for teleportation!
             interfaceNamespace = wgNamespace;
+
             # Determines the IP address and subnet of the client's end of the tunnel interface.
             # Mullvad needs to distinguish users using the same mullvad server. It does this via this peer-to-peer ip.
             # I got it by this, it was found in a script from their wireguard linux tutorial: curl -sSL https://api.mullvad.net/wg -d account="<account-number>" --data-urlencode pubkey="$(wg pubkey <<<"<private-key>")"
+            # Infact it is way easier to get it by just downloading and looking at the generated mullvad-config from the website.
             ips = [
               myMullvadServerIPIdentification
               #"fc00:bbbb:bbbb:bb01::5:7521/128"
