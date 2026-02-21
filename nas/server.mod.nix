@@ -303,10 +303,10 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
         externalInterface = "enp2s0";
 
         # When interface is setup in container this needs to be a path inside the container, but when we move it to the container network namespace it should be defined globally.
-        myMullvadPrivateKeyFile = "/home/assar/mullvad-private-key";
-        mullvadServerPublicKey = "MkP/Jytkg51/Y/EostONjIN6YaFRpsAYiNKMX27/CAY=";
-        mullvadServerIP = "185.195.233.76";
-        myMullvadServerIPIdentification = "10.74.197.161/32";
+        privateKeyFile = "/home/assar/vpn-private-key";
+        vpnServerIPIdentification = "10.2.0.2/32";
+        serverPublicKey = "cfDg7Cz1q3WiJp6bzAr68QXd/Eu7fYepYC9gh3YQaDA=";
+        vpnServerIP = "31.13.191.98";
         wgNamespace = "qbittorrent";
       in
       {
@@ -418,20 +418,20 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
             # I got it by this, it was found in a script from their wireguard linux tutorial: curl -sSL https://api.mullvad.net/wg -d account="<account-number>" --data-urlencode pubkey="$(wg pubkey <<<"<private-key>")"
             # Infact it is way easier to get it by just downloading and looking at the generated mullvad-config from the website.
             ips = [
-              myMullvadServerIPIdentification
+              vpnServerIPIdentification
               #"fc00:bbbb:bbbb:bb01::5:7521/128"
             ];
             listenPort = 51820; # to match firewall allowedUDPPorts (without this wg uses random port numbers)
 
             # Path to the private key file. Remember that its run in a container. We can't access a path outside the container.
-            privateKeyFile = myMullvadPrivateKeyFile;
+            privateKeyFile = privateKeyFile;
 
             peers = [
               # For a client configuration, one peer entry for the server will suffice.
 
               {
                 # Public key of the server (not a file path).
-                publicKey = mullvadServerPublicKey;
+                publicKey = serverPublicKey;
 
                 # Forward all the traffic via VPN. The value 0.0.0.0/0 is a special notation that means "all possible IPv4 addresses"
                 # This sets up the routing entry in the container.
@@ -440,7 +440,7 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
                 #allowedIPs = [ "10.100.0.1" "91.108.12.0/22" ];
 
                 # Set this to the server IP and port.
-                endpoint = "${mullvadServerIP}:51820"; # ToDo: route to endpoint not automatically configured https://wiki.archlinux.org/index.php/WireGuard#Loop_routing https://discourse.nixos.org/t/solved-minimal-firewall-setup-for-wireguard-client/7577
+                endpoint = "${vpnServerIP}:51820"; # ToDo: route to endpoint not automatically configured https://wiki.archlinux.org/index.php/WireGuard#Loop_routing https://discourse.nixos.org/t/solved-minimal-firewall-setup-for-wireguard-client/7577
                 # Send keepalives every 25 seconds. Important to keep NAT tables alive.
                 persistentKeepalive = 25;
               }
