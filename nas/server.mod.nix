@@ -471,7 +471,17 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
               {
                 environment.systemPackages = with pkgs; [
                   dnslookup
-                  libnatpmp
+                  (pkgs.writeShellApplication {
+                    name = "natpmp-script";
+                    runtimeInputs = with pkgs; [
+                      libnatpmp
+                      coreutils # provides date
+                    ];
+                    text = ''
+                    while true ; do date ; natpmpc -a 1 0 udp 60 -g 10.2.0.1 && natpmpc -a 1 0 tcp 60 -g 10.2.0.1 || { echo -e "ERROR with natpmpc command \a" ; break ; } ; sleep 45 ; done
+                    '';
+
+                  })
                 ];
                 users.users."samba-general" = {
                   isSystemUser = true; # The difference between normal and system user IN LINUX is purely organizational. UID bellow 1000 is for normal users. However i don't think it has an effect since i set UID explicitly.
