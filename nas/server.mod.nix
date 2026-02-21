@@ -471,6 +471,7 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
               {
                 environment.systemPackages = with pkgs; [
                   dnslookup
+                  libnatpmp
                 ];
                 users.users."samba-general" = {
                   isSystemUser = true; # The difference between normal and system user IN LINUX is purely organizational. UID bellow 1000 is for normal users. However i don't think it has an effect since i set UID explicitly.
