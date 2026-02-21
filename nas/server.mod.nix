@@ -478,8 +478,16 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
                       coreutils # provides date
                     ];
                     text = ''
-                    while true ; do date ; natpmpc -a 1 0 udp 60 -g 10.2.0.1 && natpmpc -a 1 0 tcp 60 -g 10.2.0.1 || { echo -e "ERROR with natpmpc command \a" ; break ; } ; sleep 45 ; done
-                    '';
+                    while true; do
+                        date
+                        if natpmpc -a 1 0 udp 60 -g 10.2.0.1 && natpmpc -a 1 0 tcp 60 -g 10.2.0.1; then
+                          sleep 45
+                        else
+                          echo -e "ERROR with natpmpc command \a"
+                          break
+                        fi
+                      done
+                      '';
 
                   })
                 ];
