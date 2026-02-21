@@ -471,7 +471,7 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
               {
                 environment.systemPackages = with pkgs; [
                   dnslookup
-                  (pkgs.writeShellApplication {
+                  (writeShellApplication {
                     name = "natpmp-script";
                     runtimeInputs = [
                       libnatpmp
