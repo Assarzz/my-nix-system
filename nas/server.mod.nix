@@ -473,7 +473,7 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
                   dnslookup
                   (pkgs.writeShellApplication {
                     name = "natpmp-script";
-                    runtimeInputs = with pkgs; [
+                    runtimeInputs = [
                       libnatpmp
                       coreutils # provides date
                     ];
