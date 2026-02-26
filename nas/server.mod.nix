@@ -16,11 +16,9 @@ let
     "forgejo.an" = "8082";
     "qbittorrent.an" = "8080";
     "komga.an" = "8085";
-    "calibre.an" = "8883";
   };
   excludeFromAutoGen = [
     "qbittorrent.an"
-    "calibre.an"
     "forgejo.an"
   ];
   # dnsmasq option format : -A, --address=/<domain>[/<domain>...]/[<ipaddr>]
@@ -140,48 +138,6 @@ in
         # This means that kavita will only ever be able to get its media from files with this group.
         users.users.kavita.extraGroups = [ "samba-general" ];
       }
-    )
-
-    (
-      { lib, ... }:
-      let
-        web_data_dir = "calibre-web";
-      in
-      {
-        services.calibre-web = {
-          enable = true;
-
-          dataDir = web_data_dir;
-          listen = {
-            port = lib.toInt dns_domains."calibre.an";
-            ip = "127.0.0.1";
-          };
-
-          options = {
-            enableBookUploading = true;
-          };
-        };
-        services.nginx.virtualHosts."calibre.an" = {
-          enableACME = false;
-          forceSSL = false;
-
-          # If you include extra after the domain name, you can add extra functionality. "/" is a catch all.
-          locations."/" = {
-            proxyPass = "http://127.0.0.1:${dns_domains."calibre.an"}";
-            proxyWebsockets = true; # needed if you need to use WebSocket
-            extraConfig =
-              # required when the target is also TLS server with multiple hosts
-              "proxy_ssl_server_name on;"
-              +
-                # required when the server wants to use HTTP Authentication
-                "proxy_pass_header Authorization;"
-
-              # No limit to how large files i can pass. Before this, i got an error where i could not upload large files to calibre.
-              + "client_max_body_size 0;";
-          };
-        };
-      }
-
     )
 
     # forgejo software forge server
