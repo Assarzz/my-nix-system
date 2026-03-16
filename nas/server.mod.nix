@@ -94,7 +94,7 @@ in
 
     # jellyfin server
     (
-      { config, ... }:
+      { config, pkgs, ... }:
       {
 
         # 2. CRITICAL FOR N100: Enable firmware loading to prevent GuC errors
