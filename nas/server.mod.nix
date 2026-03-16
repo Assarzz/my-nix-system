@@ -96,6 +96,24 @@ in
     (
       { config, ... }:
       {
+
+        # 2. CRITICAL FOR N100: Enable firmware loading to prevent GuC errors
+        hardware.enableAllFirmware = true;
+
+        # 3. Tell the system to use the modern Intel iHD driver
+        systemd.services.jellyfin.environment.LIBVA_DRIVER_NAME = "iHD";
+        environment.sessionVariables = { LIBVA_DRIVER_NAME = "iHD"; };
+
+        # 4. Enable hardware graphics and install the specific packages for your CPU
+        hardware.graphics = {
+          enable = true;
+          extraPackages = with pkgs; [
+            intel-media-driver      # The main driver for modern Intel GPUs
+            intel-ocl               # Generic OpenCL support
+            intel-compute-runtime   # Compute support for modern Intel chips
+            vpl-gpu-rt              # Video Processing Library for 11th Gen+
+          ];
+        };
         services.jellyfin = {
           enable = true;
           user = "jellyfin";
