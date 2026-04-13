@@ -41,8 +41,10 @@ in
           address = "/.an/${conf.nasIP}";
           cache-size = 500;
 
-          # Tells dnsmasq NOT to read /etc/resolv.conf to look for upstream servers
-          no-resolv = true;
+          server = [
+            "8.8.8.8" # google dns server
+            "1.1.1.1" # cloudflare dns server
+          ];
 
           # Ensures queries for .an are answered locally and NEVER forwarded
           local = "/.an/";
