@@ -16,10 +16,12 @@ let
     "forgejo.an" = "8082";
     "qbittorrent.an" = "8080";
     "komga.an" = "8085";
+    "vaultwarden.an" = "8222";
   };
   excludeFromAutoGen = [
     "qbittorrent.an"
     "forgejo.an"
+    "vaultwarden.an"
   ];
   # dnsmasq option format : -A, --address=/<domain>[/<domain>...]/[<ipaddr>]
   dns_addresses =
@@ -91,6 +93,34 @@ in
         };
       }
     )
+
+    ({lib, pkgs, config, ...}: {
+    services.vaultwarden = {
+      enable = true;
+      backupDir = "/var/local/vaultwarden/backup";
+      # in order to avoid having  ADMIN_TOKEN in the nix store it can be also set with the help of an environment file
+      # be aware that this file must be created by hand (or via secrets management like sops)
+      environmentFile = "/var/lib/vaultwarden/vaultwarden.env";
+      config = {
+        # Refer to https://github.com/dani-garcia/vaultwarden/blob/main/.env.template
+        DOMAIN = "https://bitwarden.example.com";
+        SIGNUPS_ALLOWED = false;
+
+        ROCKET_ADDRESS = "127.0.0.1";
+        ROCKET_PORT = lib.toInt dns_domains."vaultwarden.an";
+        ROCKET_LOG = "critical";
+
+      };
+    };
+
+    services.nginx.virtualHosts."bitwarden.example.com" = {
+      enableACME = true;
+      forceSSL = true;
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:${toString config.services.vaultwarden.config.ROCKET_PORT}";
+      };
+    };
+    })
 
     # jellyfin server
     (
