@@ -23,9 +23,6 @@ let
     "forgejo.an"
     "vaultwarden.an"
   ];
-  # dnsmasq option format : -A, --address=/<domain>[/<domain>...]/[<ipaddr>]
-  dns_addresses =
-    "/" + builtins.concatStringsSep "/" ((builtins.attrNames dns_domains) ++ [ serverIP ]);
 in
 {
   insomniac.modules = [
@@ -41,14 +38,14 @@ in
         alwaysKeepRunning = true;
 
         settings = {
-          address = dns_addresses;
+          address = "/.an/${nasIP}";
           cache-size = 500;
 
-          # I don't know my isp's dns server ip so i just use the classics. My router's backup dns server uses my isp's dns automatically. it can be configured in the WAN settings.
-          server = [
-            "8.8.8.8" # google dns server
-            "1.1.1.1" # cloudflare dns server
-          ];
+          # Tells dnsmasq NOT to read /etc/resolv.conf to look for upstream servers
+          no-resolv = true;
+
+          # Ensures queries for .an are answered locally and NEVER forwarded
+          local = "/.an/";
         };
       };
 
