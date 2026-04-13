@@ -103,8 +103,8 @@ in
       environmentFile = "/var/lib/vaultwarden/vaultwarden.env";
       config = {
         # Refer to https://github.com/dani-garcia/vaultwarden/blob/main/.env.template
-        DOMAIN = "https://bitwarden.example.com";
-        SIGNUPS_ALLOWED = false;
+        DOMAIN = "http://vaultwarden.an";
+        SIGNUPS_ALLOWED = true;
 
         ROCKET_ADDRESS = "127.0.0.1";
         ROCKET_PORT = lib.toInt dns_domains."vaultwarden.an";
@@ -113,7 +113,7 @@ in
       };
     };
 
-    services.nginx.virtualHosts."bitwarden.example.com" = {
+    services.nginx.virtualHosts."vaultwarden.an" = {
       enableACME = false;
       forceSSL = false;
       locations."/" = {
