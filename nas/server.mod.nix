@@ -38,7 +38,7 @@ in
         alwaysKeepRunning = true;
 
         settings = {
-          address = "/.an/${nasIP}";
+          address = "/.an/${conf.nasIP}";
           cache-size = 500;
 
           # Tells dnsmasq NOT to read /etc/resolv.conf to look for upstream servers
