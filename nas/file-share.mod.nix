@@ -49,8 +49,8 @@ in
             security = "user"; # Is the default, "With user-level security a client must first "log-on" with a valid username and password"
 
             #"Tell smbd what to do with user login requests that don't match a valid UNIX user in some way."
-            # "Bad User - Means user logins with an invalid password are rejected, unless the username does not exist, in which case it is treated as a guest login and mapped into the guest account."
-            "map to guest" = "Bad User";
+            # "bad user - Means user logins with an invalid password are rejected, unless the username does not exist, in which case it is treated as a guest login and mapped into the guest account."
+            "map to guest" = "bad user";
 
             # "This is a username which will be used for access to services which are specified as guest ok"
             "guest account" = "assar";
