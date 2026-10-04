@@ -39,8 +39,8 @@
         git = {
           enable = true;
           # Set your personal information.
-          settings.userName = "Assarzz";
-          settings.userEmail = "assarlannerbornzz@gmail.com";
+          settings.user.name = "Assarzz";
+          settings.user.email = "assarlannerbornzz@gmail.com";
         };
         ssh = {
           enable = true;
