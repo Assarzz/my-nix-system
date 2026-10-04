@@ -94,6 +94,7 @@ in
       }
     )
 
+    # Vaultwarden service
     ({lib, pkgs, config, ...}: {
     services.vaultwarden = {
       enable = true;
@@ -103,20 +104,24 @@ in
         DOMAIN = "http://vaultwarden.an";
         SIGNUPS_ALLOWED = true;
 
+        # Rocket is the name of the underlying tool for configuring these things
         ROCKET_ADDRESS = "127.0.0.1";
         ROCKET_PORT = lib.toInt dns_domains."vaultwarden.an";
-        ROCKET_LOG = "critical";
 
       };
     };
 
+
     services.nginx.virtualHosts."vaultwarden.an" = {
-      enableACME = false;
-      forceSSL = false;
+      addSSL = true; # Tells Nginx to listen on port 443 (HTTPS)
+      sslCertificate = "/var/ssl/vaultwarden.crt";
+      sslCertificateKey = "/var/ssl/vaultwarden.key";
+      
       locations."/" = {
         proxyPass = "http://127.0.0.1:${toString config.services.vaultwarden.config.ROCKET_PORT}";
       };
     };
+
     })
 
     # jellyfin server
