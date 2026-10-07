@@ -1,5 +1,5 @@
 /*
-  No Imperative steps needed.
+  Imperative steps: create the cloudflare token file for the acme certificate (see "Real certificate from Let's Encrypt").
   You can reference data directories from the different services in the backup mod file if you want to back them up. This is not done automatically.
 */
 let
@@ -8,22 +8,41 @@ let
   serverIP = conf.nasIP;
   servicesDataDir = conf.nasMountPoint;
 
-  # IMPORTANT for some reason ios devices don't work with the .local extension so i use .an (assar network) instead
-  # Domain names hardcoded but ports can be changed here.
-  dns_domains = {
-    "jellyfin.an" = "8096"; # default jellyfin port
-    "kavita.an" = "8081";
-    "forgejo.an" = "8082";
-    "qbittorrent.an" = "8080";
-    "komga.an" = "8085";
-    "vaultwarden.an" = "8222";
-    "audiobookshelf.an" = "8083";
+  domain = conf.nasDomain;
+  host = subdomain: "${subdomain}.${domain}";
+
+  # Each service is reached at <subdomain>.${domain}, ports can be changed here.
+  subdomains = {
+    "jellyfin" = "8096"; # default jellyfin port
+    "kavita" = "8081";
+    "forgejo" = "8082";
+    "qbittorrent" = "8080";
+    "komga" = "8085";
+    "vaultwarden" = "8222";
+    "audiobookshelf" = "8083";
   };
   excludeFromAutoGen = [
-    "qbittorrent.an"
-    "forgejo.an"
-    "vaultwarden.an"
+    "qbittorrent"
   ];
+
+  # Every virtual host uses the same wildcard certificate and redirects http to https.
+  proxyTo = target: {
+    useACMEHost = domain;
+    forceSSL = true;
+
+    # If you include extra after the domain name, you can add extra functionality. "/" is a catch all.
+    locations."/" = {
+      # This tells nginx to proxy instead of for example redirect or serve static files.
+      proxyPass = target;
+      proxyWebsockets = true; # needed if you need to use WebSocket
+      extraConfig =
+        # required when the target is also TLS server with multiple hosts
+        "proxy_ssl_server_name on;"
+        +
+          # required when the server wants to use HTTP Authentication
+          "proxy_pass_header Authorization;";
+    };
+  };
 in
 {
   insomniac.modules = [
@@ -39,16 +58,14 @@ in
         alwaysKeepRunning = true;
 
         settings = {
-          address = "/.an/${conf.nasIP}";
+          # Answers ${domain} and all its subdomains locally with the lan ip, so devices at home don't need tailscale. Queries for it are never forwarded.
+          address = "/${domain}/${conf.nasIP}";
           cache-size = 500;
 
           server = [
             "8.8.8.8" # google dns server
             "1.1.1.1" # cloudflare dns server
           ];
-
-          # Ensures queries for .an are answered locally and NEVER forwarded
-          local = "/.an/";
         };
       };
 
@@ -71,28 +88,33 @@ in
 
           # virtual hosts that dont require any custom configuration.
           # Explanation for how nginx know what request to send to which port : so even though all the domains get turned into the same ip, after the browser has received the ip from the dns server of the specified domain it THEN creates its finished request to the nginx server in which the originally specified domain is included as the Host header, which presumably nginx maps to virtualHosts.
-          virtualHosts = (
-            builtins.mapAttrs (_: port: {
-              enableACME = false;
-              forceSSL = false;
-
-              # If you include extra after the domain name, you can add extra functionality. "/" is a catch all.
-              locations."/" = {
-                # This tells nginx to proxy instead of for example redirect or serve static files.
-                proxyPass = "http://127.0.0.1:${port}";
-                proxyWebsockets = true; # needed if you need to use WebSocket
-                extraConfig =
-                  # required when the target is also TLS server with multiple hosts
-                  "proxy_ssl_server_name on;"
-                  +
-                    # required when the server wants to use HTTP Authentication
-                    "proxy_pass_header Authorization;";
-              };
-            }) (lib.filterAttrs (name: _: !builtins.elem name excludeFromAutoGen) dns_domains)
-          );
+          virtualHosts = lib.mapAttrs' (
+            subdomain: port: lib.nameValuePair (host subdomain) (proxyTo "http://127.0.0.1:${port}")
+          ) (lib.filterAttrs (name: _: !builtins.elem name excludeFromAutoGen) subdomains);
         };
       }
     )
+
+    # Real certificate from Let's Encrypt
+    # Imperative step: create /var/lib/secrets/acme-cloudflare.env (owned by root, chmod 600) containing
+    # CLOUDFLARE_DNS_API_TOKEN=<token with Zone.DNS:Edit and Zone.Zone:Read for dreamsof.net>
+    {
+      security.acme = {
+        acceptTerms = true;
+        defaults.email = conf.acmeEmail;
+
+        # One wildcard certificate for all services. It also keeps the service names out of the public certificate transparency logs.
+        # DNS-01 challenge: lego proves ownership by creating a TXT record through the cloudflare api, so let's encrypt never needs to reach the nas.
+        certs.${domain} = {
+          domain = "*.${domain}";
+          dnsProvider = "cloudflare";
+          environmentFile = "/var/lib/secrets/acme-cloudflare.env";
+          # The local dnsmasq answers ${domain} itself, so lego must check the TXT record with a public resolver.
+          dnsResolver = "1.1.1.1:53";
+          group = "nginx"; # so nginx can read the certificate
+        };
+      };
+    }
 
     # Vaultwarden service
     ({lib, pkgs, config, ...}: {
@@ -101,24 +123,13 @@ in
       backupDir = "/var/local/vaultwarden/backup";
       config = {
         # Refer to https://github.com/dani-garcia/vaultwarden/blob/main/.env.template
-        DOMAIN = "http://vaultwarden.an";
-        SIGNUPS_ALLOWED = true;
+        DOMAIN = "https://${host "vaultwarden"}";
+        SIGNUPS_ALLOWED = true; # Set to false after creating your account
 
         # Rocket is the name of the underlying tool for configuring these things
         ROCKET_ADDRESS = "127.0.0.1";
-        ROCKET_PORT = lib.toInt dns_domains."vaultwarden.an";
+        ROCKET_PORT = lib.toInt subdomains."vaultwarden";
 
-      };
-    };
-
-
-    services.nginx.virtualHosts."vaultwarden.an" = {
-      addSSL = true; # Tells Nginx to listen on port 443 (HTTPS)
-      sslCertificate = "/var/ssl/vaultwarden.crt";
-      sslCertificateKey = "/var/ssl/vaultwarden.key";
-      
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:${toString config.services.vaultwarden.config.ROCKET_PORT}";
       };
     };
 
@@ -175,7 +186,7 @@ in
         services.kavita = {
           enable = true;
           dataDir = "${servicesDataDir}/kavita";
-          settings.Port = lib.toInt dns_domains."kavita.an";
+          settings.Port = lib.toInt subdomains."kavita";
           tokenKeyFile = kavitaTokenFile;
 
           # Add this block to fix the error
@@ -193,7 +204,7 @@ in
     # audiobookshelf
     ({config, lib, pkgs, ...}: {
         services.audiobookshelf.enable = true;
-        services.audiobookshelf.port = lib.toInt dns_domains."audiobookshelf.an";
+        services.audiobookshelf.port = lib.toInt subdomains."audiobookshelf";
         users.users.audiobookshelf.extraGroups = [ "samba-general" ];
     })
 
@@ -203,28 +214,10 @@ in
       let
         cfg = config.services.forgejo;
         srv = cfg.settings.server;
-        forgejoan = "forgejo.an";
       in
       {
-
-        # We don't have it behind nginx because then the DOMAIN would technically be localhost, which forgejo uses to generate git clone urls, which would not work outside the nas, i can't clone or push with ssh://forgejo@127.0.0.1/assar/testerdel.git
-        services.nginx.virtualHosts."forgejo.an" = {
-          enableACME = false;
-          forceSSL = false;
-
-          # This tells Nginx: If someone hits port 80 requesting "forgejo.an",
-          # do not proxy the traffic. Instead, tell the browser to go to port 8082.
-          locations."/" = {
-            return = "301 http://${forgejoan}:${dns_domains.${forgejoan}}$request_uri";
-          };
-        };
-        # We need to open ports in the firewall since we aren't using nginx reverse proxy for forgejo.
-        networking.firewall.allowedTCPPorts = [
-          (lib.toInt dns_domains.${forgejoan})
-        ];
-        networking.firewall.allowedUDPPorts = [
-          (lib.toInt dns_domains.${forgejoan})
-        ];
+        # Forgejo is behind nginx like the other services. The clone urls are generated from DOMAIN and ROOT_URL, not from the address forgejo listens on, so they still point to the real domain.
+        # ssh cloning goes directly to the nas sshd on port 22: ssh://forgejo@forgejo.nas.dreamsof.net/assar/repo.git
         services.forgejo = {
           enable = true;
           stateDir = "${servicesDataDir}/forgejo";
@@ -235,10 +228,11 @@ in
           lfs.enable = true;
           settings = {
             server = {
-              DOMAIN = forgejoan;
+              DOMAIN = host "forgejo";
               # You need to specify this to remove the port from URLs in the web UI.
-              ROOT_URL = "http://${srv.DOMAIN}/";
-              HTTP_PORT = lib.toInt dns_domains.${forgejoan};
+              ROOT_URL = "https://${srv.DOMAIN}/";
+              HTTP_ADDR = "127.0.0.1"; # only reachable through nginx
+              HTTP_PORT = lib.toInt subdomains."forgejo";
             };
             # You can temporarily allow registration to create an admin user.
             service.DISABLE_REGISTRATION = false;
@@ -323,23 +317,9 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
         wgNamespace = "qbittorrent";
       in
       {
-        services.nginx.virtualHosts."qbittorrent.an" = {
-          enableACME = false;
-          forceSSL = false;
-          locations."/" = {
-
-            # The veth pair creates a network, and we target the ip in the container network namespace not even the hosts veth ip.
-            # A little bit confused how this works without NAT.
-            proxyPass = "http://192.168.200.2:${dns_domains."qbittorrent.an"}";
-            proxyWebsockets = true; # needed if you need to use WebSocket
-            extraConfig =
-              # required when the target is also TLS server with multiple hosts
-              "proxy_ssl_server_name on;"
-              +
-                # required when the server wants to use HTTP Authentication
-                "proxy_pass_header Authorization;";
-          };
-        };
+        # The veth pair creates a network, and we target the ip in the container network namespace not even the hosts veth ip.
+        # A little bit confused how this works without NAT.
+        services.nginx.virtualHosts.${host "qbittorrent"} = proxyTo "http://192.168.200.2:${subdomains."qbittorrent"}";
 
         # One part of NAT is IP forwarding.
         # Without a firewall, enabling IP forwarding would mean that any device on your LAN (192.168.50.x) could potentially send packets to your NAS and have them forwarded into your container's private network
@@ -517,7 +497,7 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
                   enable = true;
                   user = "samba-general";
                   group = "samba-general";
-                  webuiPort = lib.toInt dns_domains."qbittorrent.an";
+                  webuiPort = lib.toInt subdomains."qbittorrent";
                   serverConfig = {
                     Preferences = {
                       WebUI = {
@@ -534,7 +514,7 @@ networking.firewall.checkReversePath = "loose"; # Often needed for Tailscale on 
                 };
                 networking = {
                   # This inner container must be accessible from the outside.
-                  firewall.allowedTCPPorts = [ (lib.toInt dns_domains."qbittorrent.an") ];
+                  firewall.allowedTCPPorts = [ (lib.toInt subdomains."qbittorrent") ];
 
                   # By default all forwarded traffic are blocked by the firewall. This makes any traffic coming from the container allowed
                   #firewall.trustedInterfaces = [ "ve-qbittorrent" ]; # should not be needed

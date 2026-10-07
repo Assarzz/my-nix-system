@@ -15,6 +15,10 @@ If somebody wants to use my system they will have to change these
   nasDevice = "/dev/disk/by-label/nas";
   nasIP = "192.168.50.8";
   nasMountPoint = "/mnt/nas";
+  # Services are reached at <service>.nas.dreamsof.net. Public DNS (cloudflare) points *.nas.dreamsof.net to the nas tailscale ip, the local dnsmasq points it to nasIP.
+  nasDomain = "nas.dreamsof.net";
+  # Let's Encrypt account email
+  acmeEmail = "assarlannerborn@gmail.com";
   nasCifsMountRoot = "/home/assar/mnt";
 
   backupDevice = "/dev/disk/by-label/backup";
